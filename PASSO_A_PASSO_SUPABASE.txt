@@ -1,0 +1,63 @@
+=== PASSO A PASSO: CONFIGURAR SUPABASE ===
+
+1. ACESSAR SUPABASE
+   - Va para https://app.supabase.com
+   - Clique "Sign in with GitHub" (recomendado) ou "Sign in with Email"
+   - Crie sua conta se nao tiver uma
+
+2. CRIAR PROJETO
+   - Clique "New project"
+   - Organization: escolha a padrao ou crie uma
+   - Name: makro-dashboard
+   - Database Password: crie uma senha FORTE e ANOTE (nao da pra recuperar depois)
+   - Region: escolha a mais proxima (us-east-1 (N. Virginia) ou sa-east-1 (Sao Paulo))
+   - Clique "Create new project"
+   - Aguarde ~2 minutos enquanto o projeto e provisionado
+
+3. OBTER CREDENCIAIS
+   - No menu lateral esquerdo, clique no icone de engrenagem (Project Settings)
+   - No submenu, clique em "API"
+   - Copie os dois valores:
+
+     a) "Project URL" (URL do projeto)
+        Exemplo: https://xxxxxxxxxxxxxxxxxxxx.supabase.co
+
+     b) "anon public" key (chave publica anonima)
+        Exemplo: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+   - Envie esses dois valores para o agente continuar a configuracao
+
+4. CRIAR TABELA NO BANCO
+   - No menu lateral, clique em "SQL Editor"
+   - Clique "New query"
+   - Cole o SQL abaixo e clique "Run" (botao ▶):
+
+---------- INICIO SQL ----------
+
+CREATE TABLE users (
+  email TEXT PRIMARY KEY,
+  role TEXT NOT NULL DEFAULT 'viewer',
+  name TEXT NOT NULL DEFAULT '',
+  last_login TIMESTAMPTZ DEFAULT NOW(),
+  dev BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read users" ON users
+  FOR SELECT USING (true);
+
+CREATE POLICY "Anyone can insert users" ON users
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Anyone can update users" ON users
+  FOR UPDATE USING (true) WITH CHECK (true);
+
+INSERT INTO users (email, role, name, dev)
+VALUES ('gabryel.silva@makroengenharia.com', 'admin', 'gabryel silva', TRUE);
+
+----------- FIM SQL -----------
+
+5. PRONTO
+   - A tabela "users" sera criada com o usuario developer
+   - Envie a Project URL e a anon key para o agente finalizar a configuracao

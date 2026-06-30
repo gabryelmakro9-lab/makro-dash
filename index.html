@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Makro Executive Dashboard</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+        <img src="assets/logo.png" alt="Makro" class="login-logo">
+        <h1>MAKRO</h1>
+        <p class="login-subtitle">Executive Dashboard</p>
+
+        <div class="login-field">
+            <label><i class="fa-solid fa-envelope"></i> E-mail</label>
+            <input type="email" id="loginEmail" placeholder="nome.sobrenome@makroengenharia.com" autocomplete="off">
+        </div>
+
+        <div class="login-field">
+            <label><i class="fa-solid fa-lock"></i> Senha</label>
+            <input type="password" id="loginPassword" placeholder="senha">
+        </div>
+
+        <p class="login-error" id="loginError"></p>
+
+        <button class="login-btn" id="loginBtn">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            Entrar
+        </button>
+    </div>
+</div>
+
+<div class="layout">
+
+<!-- TOP NAVBAR -->
+
+<nav class="top-nav" id="topNav">
+
+    <div class="nav-brand">
+        <img src="assets/logo.png" alt="Makro">
+        <span class="nav-brand-name">MAKRO</span>
+    </div>
+
+    <div class="nav-links">
+        <a href="#" id="menuDashboard" class="active">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard Executivo</span>
+        </a>
+        <a href="#" id="menuFinanceiro">
+            <i class="fa-solid fa-money-bill-trend-up"></i>
+            <span>Financeiro</span>
+        </a>
+        <a href="#" id="menuOperacoes">
+            <i class="fa-solid fa-industry"></i>
+            <span>Operações</span>
+        </a>
+        <a href="#" id="menuEquipamentos">
+            <i class="fa-solid fa-truck"></i>
+            <span>Equipamentos</span>
+        </a>
+        <a href="#" id="menuRelatorios">
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Relatórios</span>
+        </a>
+        <a href="#" id="menuConfiguracoes">
+            <i class="fa-solid fa-gear"></i>
+            <span>Configurações</span>
+        </a>
+    </div>
+
+    <div class="nav-actions">
+        <button class="btn btn-refresh" id="btnRefresh" title="Atualizar dados">
+            <i class="fa-solid fa-rotate"></i>
+        </button>
+        <label class="btn btn-success import-label">
+            <i class="fa-solid fa-file-import"></i> Importar
+            <input type="file" id="excelFile" accept=".xlsx,.xls" hidden>
+        </label>
+        <button class="btn btn-dark" id="btnExportExcel" title="Exportar dados">
+            <i class="fa-solid fa-download"></i>
+        </button>
+        <button class="btn btn-logout" id="btnLogout" title="Sair">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+    </div>
+
+</nav>
+
+<!-- MAIN -->
+
+<main class="content">
+
+    <div id="viewDashboard" class="app-view">
+
+    <!-- HEADER -->
+
+    <header class="topbar">
+
+        <div>
+
+            <h1>Painel Executivo de Danos</h1>
+
+            <p>
+                Monitoramento Financeiro e Operacional
+            </p>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+                <button id="btnAnalise" class="btn-analise">
+                    <i class="fa-solid fa-chart-simple"></i> Gerar Análise Gerencial
+                </button>
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    <span id="liveLabel">Ao vivo</span>
+                </div>
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- FILTROS -->
+
+    <section class="filters">
+
+        <select id="filtroFilial">
+            <option value="ALL">
+                Todas Filiais
+            </option>
+        </select>
+
+        <select id="filtroUnidade">
+            <option value="ALL">
+                Todas Unidades
+            </option>
+        </select>
+
+        <select id="filtroTipo">
+            <option value="ALL">
+                Todos Tipos
+            </option>
+        </select>
+
+        <select id="filtroMes">
+            <option value="ALL">
+                Todos Meses
+            </option>
+        </select>
+
+    </section>
+
+    <!-- KPIS -->
+
+    <section class="kpi-grid" id="kpiGrid">
+
+       <div class="kpi-card" id="kpiCardSA">
+            <div class="kpi-header">
+                <span>Valor SA Total</span>
+                <div class="kpi-icon">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+            <h2 id="kpiSA">R$ 0</h2>
+            <div class="kpi-bottom">
+                <span class="kpi-change" id="kpiSAChange"></span>
+            </div>
+        </div>
+
+        <div class="kpi-card" id="kpiCardSC">
+            <div class="kpi-header">
+                <span>Valor SC Total</span>
+                <div class="kpi-icon">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+            <h2 id="kpiSC">R$ 0</h2>
+            <div class="kpi-bottom">
+                <span class="kpi-change" id="kpiSCChange"></span>
+            </div>
+        </div>
+
+        <div class="kpi-card" id="kpiCardGap">
+            <div class="kpi-header">
+                <span>Gap Financeiro</span>
+                <div class="kpi-icon">
+                    <i class="fa-solid fa-money-bill-1"></i>
+                </div>
+            </div>
+            <h2 id="kpiGap">R$ 0</h2>
+            <div class="kpi-bottom">
+                <span class="kpi-change" id="kpiGapChange"></span>
+            </div>
+        </div>
+
+        <div class="kpi-card" id="kpiCardOS">
+            <div class="kpi-header">
+                <span>Total OS</span>
+                <div class="kpi-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </div>
+            <h2 id="kpiOs">R$ 0</h2>
+            <div class="kpi-bottom">
+                <span class="kpi-change" id="kpiOsChange"></span>
+            </div>
+        </div>
+
+        <div class="kpi-card" id="kpiCardTicket">
+            <div class="kpi-header">
+                <span>Ticket Médio</span>
+                <div class="kpi-icon">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+            </div>
+            <h2 id="kpiTicket">R$ 0</h2>
+            <div class="kpi-bottom">
+                <span class="kpi-change" id="kpiTicketChange"></span>
+            </div>
+        </div>
+
+        <div class="kpi-card" id="kpiCardDanoTotal">
+            <div class="kpi-header">
+                <span>Danos Rateados</span>
+                <div class="kpi-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <h2 id="kpiDanoTotal">R$ 0</h2>
+            <div class="kpi-bottom">
+                <span class="kpi-change" id="kpiDanoTotalChange"></span>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- GRÁFICOS -->
+
+    <section class="dashboard-grid">
+
+        <div class="card">
+
+            <h3 id="chartMensalTitle">Evolução Mensal</h3>
+
+        <div class="card-chart">
+            <canvas id="chartMensal"></canvas>
+        </div>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Distribuição por Tipo</h3>
+        <div class="card-chart">
+            <canvas id="chartTipo"></canvas>
+        </div>
+
+        </div>
+
+        <div class="card">
+            <h3>Custos por Filial</h3>
+
+        <div class="card-chart">
+            <canvas id="chartFilial"></canvas>
+        </div>
+
+        </div>
+        <div class="card">
+
+            <h3>Custos por Unidade</h3>
+        <div class="card-chart">
+            <canvas id="chartUnidade"></canvas>
+        </div>
+        </div>
+
+    </section>
+
+    <!-- RANKINGS -->
+
+    <section class="ranking-grid">
+
+        <div class="card">
+
+            <h3>Top Equipamentos</h3>
+
+            <div id="rankingEquipamentos" class="ranking-list"></div>
+
+        </div>
+
+        <div class="card">
+
+            <h3>Ranking Filiais</h3>
+
+            <div id="rankingFiliais" class="ranking-list"></div>
+
+        </div>
+
+    </section>
+
+    <!-- INSIGHTS -->
+
+    <section class="insights">
+
+        <div class="card">
+
+            <h3>
+                Inteligência Executiva
+            </h3>
+
+            <div id="insightsContainer">
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- TABELA -->
+
+    <section class="table-card-full">
+
+        <h3>Top 10 Maiores Lançamentos</h3>
+
+        <div class="table-info">
+            <i class="fa-solid fa-circle-info"></i>
+            Exibindo os 10 maiores lançamentos por Valor SA. Para consultar a base completa, exporte os dados.
+        </div>
+
+        <div class="table-wrapper">
+
+            <table id="mainTable">
+
+                <thead>
+
+                <tr id="tableHeader">
+
+                    <th data-sort="os">Ordem Serv.<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="valorSA">Valor SA<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="valorSC">Valor SC<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="bem">Bem<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="sc">SC<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="filial">Filial<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="unidade">Unidade<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="tipo">Tipo<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th data-sort="data">Data<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
+                    <th>Descrição</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    </div>
+
+    <!-- VIEW EQUIPAMENTOS -->
+    <div id="viewEquipamentos" class="app-view" style="display: none;">
+        <!-- HEADER -->
+        <header class="topbar">
+            <div>
+                <h1>Gestão de Frotas e Equipamentos</h1>
+                <p>Status, Planos de Manutenção, Capacidades e Custos dos Ativos</p>
+            </div>
+        </header>
+
+        <!-- FILTROS -->
+        <section class="filters">
+            <input type="text" id="buscaEquipamento" placeholder="Buscar por código ou descrição do Bem...">
+            <select id="filtroStatusEquipamento">
+                <option value="ALL">Todos Status</option>
+                <option value="ATIVO">Ativo</option>
+                <option value="MANUTENCAO">Em Manutenção</option>
+                <option value="INATIVO">Inativo</option>
+            </select>
+            <select id="filtroFilialEquipamento">
+                <option value="ALL">Todas Filiais</option>
+            </select>
+        </section>
+
+        <!-- KPIS -->
+        <section class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>Total da Frota</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+                </div>
+                <h2 id="kpiTotalEquipamentos">0</h2>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>Disponibilidade Física</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-check-double"></i>
+                    </div>
+                </div>
+                <h2 id="kpiDisponibilidade">100%</h2>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>Ativos Operacionais</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-circle-play" style="color: #10b981;"></i>
+                    </div>
+                </div>
+                <h2 id="kpiAtivosOp">0</h2>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>Em Manutenção</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-screwdriver-wrench" style="color: #f59e0b;"></i>
+                    </div>
+                </div>
+                <h2 id="kpiEmManutencao">0</h2>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>Custo Total Frota</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                </div>
+                <h2 id="kpiCustoTotalFrota">R$ 0</h2>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span>Ticket Médio OS</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                </div>
+                <h2 id="kpiTicketFrota">R$ 0</h2>
+            </div>
+        </section>
+
+        <!-- LISTA DE EQUIPAMENTOS -->
+        <section class="fleet-section">
+            <div class="card-title-bar" style="margin-bottom: 20px;">
+                <h3 style="color: #001F3F; font-size: 18px; font-weight: 700; margin-bottom: 5px;">Frota Cadastrada</h3>
+                <span class="sub-text">Clique em qualquer equipamento para ver detalhes e planos de manutenção</span>
+            </div>
+            <div id="listaEquipamentos" class="equipamentos-grid">
+                <div class="no-data-message">Importe uma planilha Excel para carregar a frota.</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- VIEW CONFIGURACOES -->
+    <div id="viewConfiguracoes" class="app-view" style="display: none;">
+        <header class="topbar">
+            <div>
+                <h1>Configurações do Painel</h1>
+                <p>Gerenciamento de usuários e permissões</p>
+            </div>
+        </header>
+        <section id="configContent">
+            <div class="card config-card">
+                <h3><i class="fa-solid fa-users-gear"></i> Usuários Registrados</h3>
+                <p class="config-subtitle">Gerencie as permissões dos usuários que já acessaram o painel. Apenas administradores podem alterar papéis.</p>
+                <div id="userRegistryTable"></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL DETALHE EQUIPAMENTO -->
+    <div id="modalEquipamento" class="modal">
+        <div class="modal-content" style="max-width: 950px; width: 90%;">
+            <div class="modal-header">
+                <h2 id="detalheEquipamentoTitulo">Detalhes do Ativo</h2>
+                <span id="fecharModalEquipamento">&times;</span>
+            </div>
+            <div id="detalheEquipamentoCorpo">
+                <!-- Preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+</main>
+
+</div>
+
+<div id="modalAnalise" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Análise Gerencial</h2>
+
+            <span id="fecharModal">&times;</span>
+
+        </div>
+
+        <div id="analiseTexto"></div>
+
+    </div>
+
+</div>
+
+<script src="data/frota.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
+
