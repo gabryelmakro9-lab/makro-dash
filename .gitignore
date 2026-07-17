@@ -1,2 +1,42 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules
+
+# Build
+dist
+
+# Vercel
 .vercel
-.env*
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Debug / temp
+analise-erros.txt
+pendencias.txt
+*.log
+temp_*.py
+DIAGNOSTICO_UPLOAD_EXCEL.txt
+PASSO_A_PASSO_*.txt
+CONFIGURAR_EMAILJS.txt
+plano_de_melhoria.txt
+resumo-*.txt
+diferencas_*.txt
+kpis_painel_equipamentos.txt
+
+# Local data
+Pasta1.xlsx
+read_sheet.cjs
+check_bundle.js
+*.png

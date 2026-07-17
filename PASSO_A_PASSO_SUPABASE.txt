@@ -38,6 +38,9 @@ CREATE TABLE users (
   email TEXT PRIMARY KEY,
   role TEXT NOT NULL DEFAULT 'viewer',
   name TEXT NOT NULL DEFAULT '',
+  first_name TEXT DEFAULT '',
+  last_name TEXT DEFAULT '',
+  sector TEXT DEFAULT '',
   last_login TIMESTAMPTZ DEFAULT NOW(),
   dev BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -58,6 +61,41 @@ VALUES ('gabryel.silva@makroengenharia.com', 'admin', 'gabryel silva', TRUE);
 
 ----------- FIM SQL -----------
 
-5. PRONTO
+--- Se a tabela ja existe, rode apenas este comando para adicionar as colunas:
+ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT DEFAULT '';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS sector TEXT DEFAULT '';
+
+5. CRIAR TABELA DE METAS (COMPARTILHADA ENTRE TODOS OS USUARIOS)
+
+   No SQL Editor, cole e execute:
+
+   CREATE TABLE IF NOT EXISTS metas (
+     id INT PRIMARY KEY DEFAULT 1,
+     meta_mensal_sa NUMERIC DEFAULT 500000,
+     meta_ticket_medio NUMERIC DEFAULT 15000,
+     meta_gap_max NUMERIC DEFAULT 100000,
+     alerta_limite_dano NUMERIC DEFAULT 200000,
+     updated_at TIMESTAMPTZ DEFAULT NOW(),
+     CONSTRAINT single_row CHECK (id = 1)
+   );
+
+   ALTER TABLE metas ENABLE ROW LEVEL SECURITY;
+
+   CREATE POLICY "Everyone can read metas" ON metas
+     FOR SELECT USING (true);
+
+   CREATE POLICY "Admins can insert metas" ON metas
+     FOR INSERT WITH CHECK (true);
+
+   CREATE POLICY "Admins can update metas" ON metas
+     FOR UPDATE USING (true) WITH CHECK (true);
+
+   -- Insere a linha padrao (se nao existir)
+   INSERT INTO metas (id, meta_mensal_sa, meta_ticket_medio, meta_gap_max, alerta_limite_dano)
+   VALUES (1, 500000, 15000, 100000, 200000)
+   ON CONFLICT (id) DO NOTHING;
+
+6. PRONTO
    - A tabela "users" sera criada com o usuario developer
    - Envie a Project URL e a anon key para o agente finalizar a configuracao

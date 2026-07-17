@@ -8,11 +8,12 @@
 
 <title>Makro Executive Dashboard</title>
 
-<link rel="stylesheet" href="css/style.css">
-
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#D4AF37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Makro Dashboard">
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -21,28 +22,115 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 <body>
 
-<div class="login-overlay" id="loginOverlay">
-    <div class="login-card">
-        <img src="assets/logo.png" alt="Makro" class="login-logo">
+    <!-- LOADING SCREEN -->
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-label="Carregando">
+        <div class="loading-content">
+            <img src="assets/logo.png" alt="Makro Engenharia" class="loading-logo">
+            <h1 class="loading-title">MAKRO</h1>
+            <p class="loading-subtitle">Executive Dashboard</p>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Carregando dados online...</p>
+        </div>
+    </div>
+
+    <div class="login-overlay" id="loginOverlay" role="dialog" aria-label="Tela de login">
+    <div class="login-card" role="document">
+        <img src="assets/logo.png" alt="Logo Makro Engenharia" class="login-logo">
         <h1>MAKRO</h1>
         <p class="login-subtitle">Executive Dashboard</p>
 
-        <div class="login-field">
-            <label><i class="fa-solid fa-envelope"></i> E-mail</label>
-            <input type="email" id="loginEmail" placeholder="nome.sobrenome@makroengenharia.com" autocomplete="off">
+        <!-- LOGIN PRINCIPAL (email + senha) -->
+        <div id="loginStepPrincipal" role="form" aria-label="Formulário de login">
+            <div class="login-field">
+                <label for="loginEmail"><i class="fa-solid fa-envelope" aria-hidden="true"></i> E-mail</label>
+                <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" aria-required="true">
+            </div>
+            <div class="login-field">
+                <label for="loginPassword"><i class="fa-solid fa-lock" aria-hidden="true"></i> Senha</label>
+                <input type="password" id="loginPassword" placeholder="senha" autocomplete="current-password" aria-required="true">
+            </div>
+            <div class="login-field remember-field">
+                <label class="remember-label">
+                    <input type="checkbox" id="loginRemember">
+                    <span>Lembrar de mim</span>
+                </label>
+            </div>
+            <p class="login-error" id="loginErrorPrincipal" role="alert"></p>
+            <button class="login-btn" id="loginBtn" aria-label="Entrar no dashboard">
+                <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
+                Entrar
+            </button>
+            <div class="login-divider"><span>ou</span></div>
+            <button class="login-btn login-btn-google" id="loginBtnGoogle" aria-label="Entrar com Google">
+                <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
+                    <path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/>
+                    <path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/>
+                    <path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238c-.438.398 6.591-4.807 6.591-14.807 0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/>
+                </svg>
+                Entrar com Google
+            </button>
         </div>
 
-        <div class="login-field">
-            <label><i class="fa-solid fa-lock"></i> Senha</label>
-            <input type="password" id="loginPassword" placeholder="senha">
+        <!-- VERIFICAÇÃO DE CÓDIGO (aparece apenas quando necessário) -->
+        <div id="loginStepCode" style="display:none;" role="form" aria-label="Verificação de código">
+            <p style="color:#8899b4;font-size:13px;margin-bottom:16px;text-align:center;">
+                Um código de verificação foi enviado para<br>
+                <strong id="loginEmailExibido" style="color:#D4AF37;"></strong>
+            </p>
+            <div class="login-field">
+                <label for="loginCode"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Código de Verificação</label>
+                <div class="code-input-wrapper">
+                    <input type="text" id="loginCode" maxlength="5" placeholder="00000" autocomplete="off" inputmode="numeric" pattern="[0-9]*" aria-required="true">
+                </div>
+            </div>
+            <p class="login-error" id="loginErrorCode" role="alert"></p>
+            <button class="login-btn" id="loginBtnCode" aria-label="Verificar código">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                Verificar Código
+            </button>
+            <p style="text-align:center;margin-top:10px;">
+                <a href="#" id="loginResendCode" style="color:#5a6b89;font-size:12px;text-decoration:none;" aria-label="Reenviar código de verificação">Reenviar código</a>
+            </p>
+            <p style="text-align:center;margin-top:8px;">
+                <a href="#" id="loginVoltarPrincipal" style="color:#3d4a6b;font-size:12px;text-decoration:none;" aria-label="Voltar ao login">Voltar</a>
+            </p>
         </div>
 
-        <p class="login-error" id="loginError"></p>
+        <!-- CADASTRO DE PERFIL (aparece apos verificar o codigo) -->
+        <div id="loginStepPerfil" style="display:none;" role="form" aria-label="Cadastro de perfil">
+            <p style="color:#8899b4;font-size:13px;margin-bottom:16px;text-align:center;">
+                Complete seu cadastro
+            </p>
+            <div class="login-field">
+                <label for="regNome"><i class="fa-solid fa-user" aria-hidden="true"></i> Nome</label>
+                <input type="text" id="regNome" placeholder="Seu nome" autocomplete="given-name" aria-required="true">
+            </div>
+            <div class="login-field">
+                <label for="regSobrenome"><i class="fa-solid fa-user" aria-hidden="true"></i> Sobrenome</label>
+                <input type="text" id="regSobrenome" placeholder="Seu sobrenome" autocomplete="family-name" aria-required="true">
+            </div>
+            <div class="login-field">
+                <label for="regSetor"><i class="fa-solid fa-building" aria-hidden="true"></i> Setor</label>
+                <select id="regSetor" aria-required="true">
+                    <option value="">Selecione um setor</option>
+                    <option value="Engenharia">Engenharia</option>
+                    <option value="PCM">PCM</option>
+                    <option value="Diretoria">Diretoria</option>
+                    <option value="Operacao">Operacao</option>
+                    <option value="Aquario">Aquario</option>
+                </select>
+            </div>
+            <p class="login-error" id="loginErrorPerfil" role="alert"></p>
+            <button class="login-btn" id="loginBtnPerfil" aria-label="Concluir cadastro">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                Concluir Cadastro
+            </button>
+            <p style="text-align:center;margin-top:10px;">
+                <a href="#" id="loginSairPerfil" style="color:#5a6b89;font-size:12px;text-decoration:none;" aria-label="Sair do cadastro">Sair</a>
+            </p>
+        </div>
 
-        <button class="login-btn" id="loginBtn">
-            <i class="fa-solid fa-arrow-right-to-bracket"></i>
-            Entrar
-        </button>
     </div>
 </div>
 
@@ -50,53 +138,62 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 <!-- TOP NAVBAR -->
 
-<nav class="top-nav" id="topNav">
+<a href="#mainContent" class="skip-link" style="position:absolute;left:-9999px;top:0;z-index:10000;background:#D4AF37;color:#060a13;padding:10px 20px;font-weight:700;text-decoration:none;border-radius:0 0 8px 0;">Pular para conteúdo principal</a>
+
+<nav class="top-nav" id="topNav" role="navigation" aria-label="Navegação principal">
 
     <div class="nav-brand">
-        <img src="assets/logo.png" alt="Makro">
+        <img src="assets/logo.png" alt="Makro Engenharia" class="nav-logo">
         <span class="nav-brand-name">MAKRO</span>
     </div>
 
-    <div class="nav-links">
-        <a href="#" id="menuDashboard" class="active">
-            <i class="fa-solid fa-chart-line"></i>
+    <div class="nav-links" role="menubar" aria-label="Seções do dashboard">
+        <a href="#" id="menuDashboard" class="active" role="menuitem" aria-current="page">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
             <span>Dashboard Executivo</span>
         </a>
-        <a href="#" id="menuFinanceiro">
-            <i class="fa-solid fa-money-bill-trend-up"></i>
+        <a href="#" id="menuFinanceiro" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-money-bill-trend-up" aria-hidden="true"></i>
             <span>Financeiro</span>
         </a>
-        <a href="#" id="menuOperacoes">
-            <i class="fa-solid fa-industry"></i>
+        <a href="#" id="menuOperacoes" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-industry" aria-hidden="true"></i>
             <span>Operações</span>
         </a>
-        <a href="#" id="menuEquipamentos">
-            <i class="fa-solid fa-truck"></i>
+        <a href="#" id="menuEquipamentos" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-truck" aria-hidden="true"></i>
             <span>Equipamentos</span>
         </a>
-        <a href="#" id="menuRelatorios">
-            <i class="fa-solid fa-file-lines"></i>
+        <a href="#" id="menuRelatorios" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
             <span>Relatórios</span>
         </a>
-        <a href="#" id="menuConfiguracoes">
-            <i class="fa-solid fa-gear"></i>
+        <a href="#" id="menuConfiguracoes" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
             <span>Configurações</span>
         </a>
     </div>
 
-    <div class="nav-actions">
-        <button class="btn btn-refresh" id="btnRefresh" title="Atualizar dados">
-            <i class="fa-solid fa-rotate"></i>
+    <div class="nav-actions" role="toolbar" aria-label="Ações">
+        <button class="btn btn-refresh" id="btnRefresh" title="Atualizar dados" aria-label="Atualizar dashboard">
+            <i class="fa-solid fa-rotate" aria-hidden="true"></i>
         </button>
-        <label class="btn btn-success import-label">
-            <i class="fa-solid fa-file-import"></i> Importar
+        <label class="btn btn-success import-label" aria-label="Importar planilha Excel">
+            <i class="fa-solid fa-file-import" aria-hidden="true"></i> Importar
             <input type="file" id="excelFile" accept=".xlsx,.xls" hidden>
         </label>
-        <button class="btn btn-dark" id="btnExportExcel" title="Exportar dados">
-            <i class="fa-solid fa-download"></i>
+        <button class="btn btn-dark" id="btnExportExcel" title="Exportar dados" aria-label="Exportar dados para Excel">
+            <i class="fa-solid fa-download" aria-hidden="true"></i>
         </button>
-        <button class="btn btn-logout" id="btnLogout" title="Sair">
-            <i class="fa-solid fa-right-from-bracket"></i>
+        <button class="btn btn-dark" id="btnExportPDF" title="Exportar PDF" aria-label="Exportar relatório em PDF">
+            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+        </button>
+        <button class="btn btn-perfil" id="btnPerfil" title="Meu Perfil" aria-label="Abrir perfil do usuário">
+            <i class="fa-solid fa-user" aria-hidden="true"></i>
+            <span id="perfilBtnNome" style="display:none;"></span>
+        </button>
+        <button class="btn btn-logout" id="btnLogout" title="Sair" aria-label="Sair do dashboard">
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
         </button>
     </div>
 
@@ -104,7 +201,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 <!-- MAIN -->
 
-<main class="content">
+<main class="content" id="mainContent" role="main">
 
     <div id="viewDashboard" class="app-view">
 
@@ -135,27 +232,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
     <!-- FILTROS -->
 
-    <section class="filters">
+    <section class="filters" role="search" aria-label="Filtros do dashboard">
 
-        <select id="filtroFilial">
+        <select id="filtroFilial" aria-label="Filtrar por filial">
             <option value="ALL">
                 Todas Filiais
             </option>
         </select>
 
-        <select id="filtroUnidade">
+        <select id="filtroUnidade" aria-label="Filtrar por unidade">
             <option value="ALL">
                 Todas Unidades
             </option>
         </select>
 
-        <select id="filtroTipo">
+        <select id="filtroTipo" aria-label="Filtrar por tipo">
             <option value="ALL">
                 Todos Tipos
             </option>
         </select>
 
-        <select id="filtroMes">
+        <select id="filtroMes" aria-label="Filtrar por mês">
             <option value="ALL">
                 Todos Meses
             </option>
@@ -165,86 +262,107 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
     <!-- KPIS -->
 
-    <section class="kpi-grid" id="kpiGrid">
+    <section class="kpi-category">
+        <div class="kpi-category-header">
+            <i class="fa-solid fa-coins"></i>
+            <span>Indicadores Financeiros</span>
+        </div>
+        <div class="kpi-grid" id="kpiGridFinanceiro">
 
-       <div class="kpi-card" id="kpiCardSA">
-            <div class="kpi-header">
-                <span>Valor SA Total</span>
-                <div class="kpi-icon">
-                    <i class="fa-solid fa-sack-dollar"></i>
+            <div class="kpi-card" id="kpiCardSA" data-kpi="valorSA" data-tip="Somatório de todos os danos efetivamente identificados e corretamente categorizados na base (Dano Crítico + Dano Não Crítico). Reflete o custo real dos sinistros mapeados com clareza.">
+                <div class="kpi-header">
+                    <span>Valor total de Danos</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                </div>
+                <h2 id="kpiSA">R$ 0</h2>
+                <div class="kpi-bottom">
+                    <span class="kpi-change" id="kpiSAChange"></span>
+                    <span class="kpi-meta" id="kpiSAMeta"></span>
                 </div>
             </div>
-            <h2 id="kpiSA">R$ 0</h2>
-            <div class="kpi-bottom">
-                <span class="kpi-change" id="kpiSAChange"></span>
-            </div>
-        </div>
 
-        <div class="kpi-card" id="kpiCardSC">
-            <div class="kpi-header">
-                <span>Valor SC Total</span>
-                <div class="kpi-icon">
-                    <i class="fa-solid fa-sack-dollar"></i>
+            <div class="kpi-card kpi-card-danger" id="kpiCardGap" data-kpi="gap">
+                <div class="kpi-header">
+                    <span>Gap Financeiro</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-money-bill-1"></i>
+                    </div>
+                </div>
+                <h2 id="kpiGap">R$ 0</h2>
+                <div class="kpi-bottom">
+                    <span class="kpi-change" id="kpiGapChange"></span>
+                    <span class="kpi-meta" id="kpiGapMeta"></span>
                 </div>
             </div>
-            <h2 id="kpiSC">R$ 0</h2>
-            <div class="kpi-bottom">
-                <span class="kpi-change" id="kpiSCChange"></span>
-            </div>
-        </div>
 
-        <div class="kpi-card" id="kpiCardGap">
-            <div class="kpi-header">
-                <span>Gap Financeiro</span>
-                <div class="kpi-icon">
-                    <i class="fa-solid fa-money-bill-1"></i>
+            <div class="kpi-card" id="kpiCardFilial">
+                <div class="kpi-header">
+                    <span>Unidade Crítica</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                </div>
+                <h2 id="kpiFilialNome" style="font-size:1rem;word-break:break-word;">-</h2>
+                <div class="kpi-bottom">
+                    <span class="kpi-value-sub" id="kpiFilialValor">R$ 0</span>
                 </div>
             </div>
-            <h2 id="kpiGap">R$ 0</h2>
-            <div class="kpi-bottom">
-                <span class="kpi-change" id="kpiGapChange"></span>
-            </div>
-        </div>
 
-        <div class="kpi-card" id="kpiCardOS">
-            <div class="kpi-header">
-                <span>Total OS</span>
-                <div class="kpi-icon">
-                    <i class="fa-solid fa-chart-line"></i>
+        </div>
+    </section>
+
+    <section class="kpi-category">
+        <div class="kpi-category-header">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Indicadores Operacionais</span>
+        </div>
+        <div class="kpi-grid" id="kpiGridOperacional">
+
+            <div class="kpi-card" id="kpiCardOS" data-kpi="totalOS">
+                <div class="kpi-header">
+                    <span>Total OS</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                </div>
+                <h2 id="kpiOs">0</h2>
+                <div class="kpi-bottom">
+                    <span class="kpi-change" id="kpiOsChange"></span>
+                    <span class="kpi-meta" id="kpiOsMeta"></span>
                 </div>
             </div>
-            <h2 id="kpiOs">R$ 0</h2>
-            <div class="kpi-bottom">
-                <span class="kpi-change" id="kpiOsChange"></span>
-            </div>
-        </div>
 
-        <div class="kpi-card" id="kpiCardTicket">
-            <div class="kpi-header">
-                <span>Ticket Médio</span>
-                <div class="kpi-icon">
-                    <i class="fa-solid fa-receipt"></i>
+            <div class="kpi-card" id="kpiCardTicket" data-kpi="ticket">
+                <div class="kpi-header">
+                    <span>Ticket Médio</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                </div>
+                <h2 id="kpiTicket">R$ 0</h2>
+                <div class="kpi-bottom">
+                    <span class="kpi-change" id="kpiTicketChange"></span>
+                    <span class="kpi-meta" id="kpiTicketMeta"></span>
                 </div>
             </div>
-            <h2 id="kpiTicket">R$ 0</h2>
-            <div class="kpi-bottom">
-                <span class="kpi-change" id="kpiTicketChange"></span>
-            </div>
-        </div>
 
-        <div class="kpi-card" id="kpiCardDanoTotal">
-            <div class="kpi-header">
-                <span>Danos Rateados</span>
-                <div class="kpi-icon">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
+            <div class="kpi-card" id="kpiCardDanoTotal" data-kpi="danoTotal" data-tip="Valor estimado de ocorrências que não puderam ser classificadas com precisão — seja por falta de Ordem de Serviço, vínculo indefinido com a frota ou categorização incompleta (Dano sem identificação + Dano não categorizado). Representa o montante de possíveis danos que necessitam de investigação adicional.">
+                <div class="kpi-header">
+                    <span>Total Possiveis Danos Identificados</span>
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <h2 id="kpiDanoTotal">R$ 0</h2>
+                <div class="kpi-bottom">
+                    <span class="kpi-change" id="kpiDanoTotalChange"></span>
+                    <span class="kpi-meta" id="kpiDanoTotalMeta"></span>
                 </div>
             </div>
-            <h2 id="kpiDanoTotal">R$ 0</h2>
-            <div class="kpi-bottom">
-                <span class="kpi-change" id="kpiDanoTotalChange"></span>
-            </div>
-        </div>
 
+        </div>
     </section>
 
     <!-- GRÁFICOS -->
@@ -328,6 +446,28 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
     </section>
 
+    <!-- ALERTAS -->
+
+    <section class="alerts-section" id="alertsSection" style="display:none;">
+        <div class="alerts-header">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alertas e Ações Recomendadas</span>
+            <span class="alerts-count" id="alertsCount">0</span>
+        </div>
+        <div id="alertsContainer"></div>
+    </section>
+
+    <!-- DRILL-DOWN MODAL -->
+    <div id="modalDrillDown" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2 id="drillDownTitle">Detalhamento</h2>
+                <span id="fecharDrillDown">&times;</span>
+            </div>
+            <div id="drillDownBody"></div>
+        </div>
+    </div>
+
     <!-- TABELA -->
 
     <section class="table-card-full">
@@ -349,7 +489,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
                     <th data-sort="os">Ordem Serv.<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                     <th data-sort="valorSA">Valor SA<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
-                    <th data-sort="valorSC">Valor SC<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                     <th data-sort="bem">Bem<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                     <th data-sort="sc">SC<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
                     <th data-sort="filial">Filial<span class="sort-indicator"><i class="fa-solid fa-sort"></i></span></th>
@@ -480,6 +619,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
                 <p class="config-subtitle">Gerencie as permissões dos usuários que já acessaram o painel. Apenas administradores podem alterar papéis.</p>
                 <div id="userRegistryTable"></div>
             </div>
+            <div id="metasConfigContainer"></div>
         </section>
     </div>
 
@@ -518,8 +658,20 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
 
 </div>
 
-<script src="data/frota.js"></script>
-<script src="js/app.js"></script>
+<!-- MODAL PERFIL -->
+<div id="modalPerfil" class="modal">
+    <div class="modal-content" style="max-width:420px;">
+        <div class="modal-header">
+            <h2>Meu Perfil</h2>
+            <span id="fecharModalPerfil">&times;</span>
+        </div>
+        <div id="perfilBody">
+            <div id="perfilConteudo"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
 
 </body>
 </html>

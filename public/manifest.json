@@ -1,0 +1,25 @@
+{
+  "name": "Makro Executive Dashboard",
+  "short_name": "Makro Dashboard",
+  "description": "Painel executivo para gestão de frota e indicadores Makro Engenharia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060a13",
+  "theme_color": "#D4AF37",
+  "orientation": "any",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
