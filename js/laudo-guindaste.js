@@ -1,5 +1,6 @@
 ﻿import { safeEl } from "./utils.js";
 import { getAuthHeaders as supabaseAuthHeaders } from "./supabase.js";
+import { carregarFrota, criarAutocomplete, getFrotaItem } from "./frota-autocomplete.js";
 
 const SUPABASE_URL = typeof __SUPABASE_URL__ !== "undefined" ? __SUPABASE_URL__ : "";
 const SUPABASE_ANON = typeof __SUPABASE_ANON__ !== "undefined" ? __SUPABASE_ANON__ : "";
@@ -491,10 +492,27 @@ function renderHistoricoModal() {
   }));
 }
 
+function bindFrotaAutocomplete() {
+  const input = safeEl("lgFrota");
+  if (!input || input.dataset.autocompleteBound) return;
+  input.dataset.autocompleteBound = "1";
+  input.autocomplete = "off";
+  criarAutocomplete(input, item => {
+    const modelo = safeEl("lgModelo");
+    const serie = safeEl("lgSerie");
+    const ano = safeEl("lgAno");
+    if (modelo) modelo.value = item.Descrição || item["Nome do Bem"] || "";
+    if (serie) serie.value = item.Série || item["Série"] || "";
+    if (ano) ano.value = item["Ano Fabric."] || item["Ano Fabricação"] || "";
+  });
+}
+
 export async function initLaudoGuindaste() {
   const form = safeEl("laudoGuindasteForm");
   const di = safeEl("lgDataInspecao"); if (di) di.value = hojeISO();
   renderChecklist();
+  await carregarFrota();
+  bindFrotaAutocomplete();
 
   safeEl("btnNovoLaudoGuindaste")?.addEventListener("click", () => { limparFormulario(); form.style.display = "block"; form.scrollIntoView({ behavior: "smooth" }); });
   safeEl("btnSalvarLaudoGuindaste")?.addEventListener("click", async () => {

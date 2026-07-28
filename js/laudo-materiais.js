@@ -1,5 +1,6 @@
 import { safeEl } from "./utils.js";
 import { getAuthHeaders as supabaseAuthHeaders } from "./supabase.js";
+import { carregarFrota, criarAutocomplete, getFrotaItem } from "./frota-autocomplete.js";
 
 const SUPABASE_URL = typeof __SUPABASE_URL__ !== "undefined" ? __SUPABASE_URL__ : "";
 const SUPABASE_ANON = typeof __SUPABASE_ANON__ !== "undefined" ? __SUPABASE_ANON__ : "";
@@ -566,11 +567,24 @@ function renderHistoricoModal() {
 
 /* ───── Init ───── */
 
+function bindFrotaAutocomplete() {
+  const input = safeEl("lmFrotaAtrelada");
+  if (!input || input.dataset.autocompleteBound) return;
+  input.dataset.autocompleteBound = "1";
+  input.autocomplete = "off";
+  criarAutocomplete(input, item => {
+    const equip = safeEl("lmEquipAtrelado");
+    if (equip) equip.value = item["Nome do Bem"] || item.Descrição || "";
+  });
+}
+
 export async function initLaudoMateriais() {
   const form = safeEl("laudoMateriaisForm");
   const di = safeEl("lmDataInspecao"); if (di) di.value = hojeISO();
   window.__lmAcessoriosData = {};
   renderAcessoriosTable();
+  await carregarFrota();
+  bindFrotaAutocomplete();
 
   safeEl("btnNovoLaudoMateriais")?.addEventListener("click", () => {
     limparFormulario();
