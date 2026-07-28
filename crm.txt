@@ -1,0 +1,34 @@
+O que falta para transformar o Makro Executive Dashboard em um CRM:
+
+1. Gestão de Clientes / Contatos
+   - Cadastro completo (empresa, CNPJ, endereço, telefone)
+   - Histórico de interações (ligações, e-mails, reuniões)
+   - Segmentação por tipo/perfil
+
+2. Pipeline de Vendas / Oportunidades
+   - Kanban de funis (lead -> proposta -> negociação -> fechado)
+   - Controle de propostas e orçamentos
+   - Previsão de receita (forecasting)
+
+3. Automação de Atividades
+   - Agenda de tarefas e follow-ups
+   - Notificações e lembretes automáticos
+   - Workflows (e-mail automático ao criar lead, etc.)
+
+4. Comunicação Integrada
+   - Registro de chamadas e mensagens (WhatsApp, e-mail)
+   - Templates de e-mail e SMS
+   - Chat interno
+
+5. Módulo Comercial
+   - Controle de contratos
+   - Faturamento recorrente (assinaturas)
+   - Metas comerciais por vendedor
+
+6. Relatórios Comerciais
+   - Taxa de conversão por etapa
+   - Lead time médio
+   - Desempenho por vendedor
+   - Análise de funil
+
+Resumo: O projeto atual é focado em monitoramento operacional/financeiro de danos e frota, não em gestão de relacionamento com cliente. Para virar CRM, precisa de um novo módulo centrado em contatos, vendas e comunicação.

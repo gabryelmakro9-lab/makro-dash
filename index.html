@@ -147,31 +147,47 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         <span class="nav-brand-name">MAKRO</span>
     </div>
 
-    <div class="nav-links" role="menubar" aria-label="Seções do dashboard">
-        <a href="#" id="menuDashboard" class="active" role="menuitem" aria-current="page">
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-            <span>Dashboard Executivo</span>
-        </a>
-        <a href="#" id="menuFinanceiro" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-money-bill-trend-up" aria-hidden="true"></i>
-            <span>Financeiro</span>
-        </a>
-        <a href="#" id="menuOperacoes" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-industry" aria-hidden="true"></i>
-            <span>Operações</span>
-        </a>
-        <a href="#" id="menuEquipamentos" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-truck" aria-hidden="true"></i>
-            <span>Equipamentos</span>
-        </a>
-        <a href="#" id="menuRelatorios" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
-            <span>Relatórios</span>
-        </a>
-        <a href="#" id="menuConfiguracoes" role="menuitem" tabindex="-1">
-            <i class="fa-solid fa-gear" aria-hidden="true"></i>
-            <span>Configurações</span>
-        </a>
+    <div class="nav-links-wrapper">
+        <button class="nav-scroll-btn nav-scroll-left" aria-label="Rolar menu para esquerda" tabindex="-1">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="nav-links" role="menubar" aria-label="Seções do dashboard">
+            <a href="#" id="menuDashboard" class="active" role="menuitem" aria-current="page">
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                <span>Dashboard Executivo</span>
+            </a>
+            <a href="#" id="menuFinanceiro" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-money-bill-trend-up" aria-hidden="true"></i>
+                <span>Financeiro</span>
+            </a>
+            <a href="#" id="menuOperacoes" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-industry" aria-hidden="true"></i>
+                <span>Operações</span>
+            </a>
+            <a href="#" id="menuEquipamentos" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-truck" aria-hidden="true"></i>
+                <span>Equipamentos</span>
+            </a>
+            <a href="#" id="menuRelatorios" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                <span>Relatórios</span>
+            </a>
+            <a href="#" id="menuLaudoGuindaste" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-crane" aria-hidden="true"></i>
+                <span>Laudo Guind./Guindauto</span>
+            </a>
+            <a href="#" id="menuLaudoMateriais" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-link" aria-hidden="true"></i>
+                <span>Laudo Materiais Içamento</span>
+            </a>
+            <a href="#" id="menuConfiguracoes" role="menuitem" tabindex="-1">
+                <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                <span>Configurações</span>
+            </a>
+        </div>
+        <button class="nav-scroll-btn nav-scroll-right" aria-label="Rolar menu para direita" tabindex="-1">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
     </div>
 
     <div class="nav-actions" role="toolbar" aria-label="Ações">
@@ -621,6 +637,236 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
             </div>
             <div id="metasConfigContainer"></div>
         </section>
+    </div>
+
+    <!-- VIEW LAUDO GUINDASTE -->
+    <div id="viewLaudoGuindaste" class="app-view" style="display: none;">
+        <header class="topbar">
+            <div>
+                <h1>Emissão de Laudos Técnicos</h1>
+                <p>Inspeção periódica de equipamentos de içamento conforme NR 11</p>
+            </div>
+        </header>
+
+        <section class="laudo-controls" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <button id="btnNovoLaudoGuindaste" class="btn btn-primary" style="background:#D4AF37;color:#080c16;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-plus"></i> Novo Laudo
+            </button>
+            <button id="btnSalvarLaudoGuindaste" class="btn btn-success" style="background:#1a7f3a;color:#fff;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-save"></i> Salvar Progresso
+            </button>
+            <button id="btnHistoricoLaudoGuindaste" class="btn btn-dark" style="background:#1e2a45;color:#e8edf5;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Histórico (<span id="qtdeLaudosGuindaste">0</span>)
+            </button>
+            <button id="btnGerarPDFLaudoGuindaste" class="btn btn-danger" style="background:#b91c1c;color:#fff;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-file-pdf"></i> Gerar PDF
+            </button>
+        </section>
+
+        <div id="laudoGuindasteForm" class="card" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="color:#D4AF37;margin:0;"><i class="fa-solid fa-file-pen"></i> Dados do Equipamento</h3>
+                <span style="background:#1e2a45;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;color:#D4AF37;font-family:monospace;" id="lgNumeroLaudo">LDG-XXXXXXXX</span>
+            </div>
+            <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+                <div class="form-field">
+                    <label>Tipo de Equipamento</label>
+                    <select id="lgTipo" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                        <option value="Guindaste">Guindaste</option>
+                        <option value="Guindauto">Guindauto</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Frota</label>
+                    <input type="text" id="lgFrota" placeholder="Ex: 365" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Modelo</label>
+                    <input type="text" id="lgModelo" placeholder="Ex: LTM1250" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Capacidade (t)</label>
+                    <input type="text" id="lgCapacidade" placeholder="Ex: 50" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Nº Série</label>
+                    <input type="text" id="lgSerie" placeholder="Número de série" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Ano Fabricação</label>
+                    <input type="text" id="lgAno" placeholder="Ex: 2018" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Filial / Unidade</label>
+                    <select id="lgUnidade" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                        <option value="Matriz">Matriz</option>
+                        <option value="Pará">Pará</option>
+                        <option value="Maranhão">Maranhão</option>
+                        <option value="Mossoró">Mossoró</option>
+                        <option value="Pecém">Pecém</option>
+                        <option value="Pernambuco">Pernambuco</option>
+                        <option value="MKT">MKT</option>
+                        <option value="Ceará">Ceará</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Data da Inspeção</label>
+                    <input type="date" id="lgDataInspecao" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Inspetor</label>
+                    <input type="text" id="lgInspetor" placeholder="Nome do inspetor" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>CREA</label>
+                    <input type="text" id="lgCrea" placeholder="Ex: 123456-D" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>ART</label>
+                    <input type="text" id="lgArt" placeholder="Nº ART" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+            </div>
+
+            <h3 style="margin:24px 0 16px;color:#D4AF37;"><i class="fa-solid fa-clipboard-list"></i> Checklist de Inspeção</h3>
+            <div id="lgChecklistContainer" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;"></div>
+
+            <h3 style="margin:24px 0 16px;color:#D4AF37;"><i class="fa-solid fa-pen"></i> Observações e Parecer</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="form-field">
+                    <label>Observações Gerais</label>
+                    <textarea id="lgObservacoes" rows="4" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;resize:vertical;"></textarea>
+                </div>
+                <div>
+                    <div class="form-field" style="margin-bottom:12px;">
+                        <label>Parecer Final</label>
+                        <select id="lgParecer" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                            <option value="Aprovado">Aprovado</option>
+                            <option value="Aprovado com Restrições">Aprovado com Restrições</option>
+                            <option value="Reprovado">Reprovado</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Recomendações</label>
+                        <textarea id="lgRecomendacoes" rows="3" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;resize:vertical;" placeholder="Descreva as ações recomendadas..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL HISTÓRICO -->
+        <div id="modalHistoricoLaudoGuindaste" class="modal" style="display:none;align-items:center;justify-content:center;">
+            <div class="modal-content" style="max-width:800px;max-height:80vh;overflow-y:auto;">
+                <div class="modal-header">
+                    <h2>Histórico de Laudos</h2>
+                    <span id="fecharModalHistoricoGuindaste">&times;</span>
+                </div>
+                <div id="historicoLaudoGuindasteBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW LAUDO MATERIAIS IÇAMENTO -->
+    <div id="viewLaudoMateriais" class="app-view" style="display: none;">
+        <header class="topbar">
+            <div>
+                <h1>Laudo de Materiais de Içamento</h1>
+                <p>Inspeção periódica de manilhas, cintas e cabos de aço conforme NR 11</p>
+            </div>
+        </header>
+
+        <section class="laudo-controls" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <button id="btnNovoLaudoMateriais" class="btn btn-primary" style="background:#D4AF37;color:#080c16;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-plus"></i> Novo Laudo
+            </button>
+            <button id="btnSalvarLaudoMateriais" class="btn btn-success" style="background:#1a7f3a;color:#fff;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-save"></i> Salvar Progresso
+            </button>
+            <button id="btnHistoricoMateriais" class="btn btn-dark" style="background:#1e2a45;color:#e8edf5;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Histórico (<span id="qtdeMateriaisHistorico">0</span>)
+            </button>
+            <button id="btnGerarPDFMateriais" class="btn btn-danger" style="background:#b91c1c;color:#fff;font-weight:700;padding:10px 24px;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-file-pdf"></i> Gerar PDF
+            </button>
+        </section>
+
+        <div id="laudoMateriaisForm" class="card" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="color:#D4AF37;margin:0;"><i class="fa-solid fa-link"></i> Dados do Laudo</h3>
+                <span style="background:#1e2a45;padding:6px 16px;border-radius:6px;font-size:13px;font-weight:600;color:#D4AF37;font-family:monospace;" id="lmNumeroLaudo">LDI-XXXXXXXX</span>
+            </div>
+            <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+                <div class="form-field">
+                    <label>Data da Inspeção</label>
+                    <input type="date" id="lmDataInspecao" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Local / Unidade</label>
+                    <select id="lmLocal" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                        <option value="Matriz">Matriz</option>
+                        <option value="Pará">Pará</option>
+                        <option value="Maranhão">Maranhão</option>
+                        <option value="Mossoró">Mossoró</option>
+                        <option value="Pecém">Pecém</option>
+                        <option value="Pernambuco">Pernambuco</option>
+                        <option value="MKT">MKT</option>
+                        <option value="Ceará">Ceará</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Inspetor</label>
+                    <input type="text" id="lmInspetor" placeholder="Nome do inspetor" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>CREA</label>
+                    <input type="text" id="lmCrea" placeholder="Ex: 123456-D" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>ART</label>
+                    <input type="text" id="lmArt" placeholder="Nº ART" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Equipamento Atrelado</label>
+                    <input type="text" id="lmEquipAtrelado" placeholder="Ex: Guindaste LTM1050" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+                <div class="form-field">
+                    <label>Frota Atrelada</label>
+                    <input type="text" id="lmFrotaAtrelada" placeholder="Nº da frota" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;">
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px;">
+                <h3 style="color:#D4AF37;margin:0;"><i class="fa-solid fa-boxes"></i> Acessórios Inspecionados (<span id="qtdeAcessoriosMateriais">0</span>)</h3>
+                <button id="btnAddAcessorioMateriais" class="btn btn-primary" style="background:rgba(212,175,55,0.15);color:#D4AF37;border:1px solid rgba(212,175,55,0.2);padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;">
+                    <i class="fa-solid fa-plus"></i> Adicionar Acessório
+                </button>
+            </div>
+            <div id="lmAcessoriosBody"></div>
+
+            <h3 style="margin:20px 0 12px;color:#D4AF37;"><i class="fa-solid fa-pen"></i> Observações Gerais</h3>
+            <textarea id="lmObservacoes" rows="3" style="width:100%;padding:8px 12px;border-radius:6px;border:1px solid #2a3550;background:#0d1225;color:#e8edf5;resize:vertical;" placeholder="Observações complementares do laudo..."></textarea>
+        </div>
+
+        <!-- MODAL ACESSÓRIO -->
+        <div id="modalAcessorioMateriais" class="modal" style="display:none;align-items:center;justify-content:center;">
+            <div class="modal-content" style="max-width:700px;max-height:85vh;overflow-y:auto;">
+                <div class="modal-header">
+                    <h2>Editar Acessório</h2>
+                    <span id="fecharModalAcessorioMateriais">&times;</span>
+                </div>
+                <div id="lmAcessorioModalBody"></div>
+            </div>
+        </div>
+
+        <!-- MODAL HISTÓRICO -->
+        <div id="modalHistoricoMateriais" class="modal" style="display:none;align-items:center;justify-content:center;">
+            <div class="modal-content" style="max-width:800px;max-height:80vh;overflow-y:auto;">
+                <div class="modal-header">
+                    <h2>Histórico de Laudos - Materiais de Içamento</h2>
+                    <span id="fecharModalHistoricoMateriais">&times;</span>
+                </div>
+                <div id="historicoMateriaisBody"></div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL DETALHE EQUIPAMENTO -->

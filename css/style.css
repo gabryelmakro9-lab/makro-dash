@@ -145,13 +145,61 @@ body {
   background-clip: text;
 }
 
+.nav-links-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.nav-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(6, 10, 19, 0.85);
+  color: #D4AF37;
+  border-radius: 6px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  transition: all 0.2s;
+  z-index: 2;
+}
+.nav-scroll-btn:hover {
+  background: rgba(6, 10, 19, 0.95);
+  color: #f0d68a;
+}
+.nav-scroll-btn.visible {
+  display: flex;
+}
+.nav-scroll-left {
+  left: 2px;
+}
+.nav-scroll-right {
+  right: 2px;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
   gap: 2px;
   flex: 1;
+  min-width: 0;
   overflow-x: auto;
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.nav-links::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-links a {
@@ -2020,4 +2068,92 @@ canvas {
   .table-wrapper table {
     min-width: 700px;
   }
+}
+
+/* ===== LAUDO GUINDASTE ===== */
+#viewLaudoGuindaste .card {
+  background: linear-gradient(135deg, rgba(13,18,37,0.95), rgba(20,30,55,0.9));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+#viewLaudoGuindaste .form-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(136,153,180,0.8);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+#viewLaudoGuindaste .form-field input,
+#viewLaudoGuindaste .form-field select,
+#viewLaudoGuindaste .form-field textarea {
+  transition: all 0.2s ease;
+}
+#viewLaudoGuindaste .form-field input:focus,
+#viewLaudoGuindaste .form-field select:focus,
+#viewLaudoGuindaste .form-field textarea:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+  background: rgba(13,18,37,0.8) !important;
+}
+#viewLaudoGuindaste .check-option {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+#viewLaudoGuindaste .check-option:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+#viewLaudoGuindaste .ci {
+  transition: all 0.2s ease;
+}
+#viewLaudoGuindaste .ci:hover {
+  border-color: rgba(255,255,255,0.12) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+#viewLaudoGuindaste .laudo-controls .btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 13px;
+  letter-spacing: -0.2px;
+}
+#viewLaudoGuindaste .laudo-controls .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  opacity: 0.9;
+}
+#viewLaudoGuindaste .laudo-controls .btn:active {
+  transform: translateY(0);
+}
+#viewLaudoGuindaste .form-grid input,
+#viewLaudoGuindaste .form-grid select {
+  background: rgba(8,12,22,0.6) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  color: #e2e8f0 !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+}
+#viewLaudoGuindaste .form-grid input::placeholder {
+  color: rgba(136,153,180,0.4);
+}
+#viewLaudoGuindaste .laudo-controls button:first-child {
+  background: linear-gradient(135deg, #D4AF37, #f0d68a) !important;
+  color: #080c16 !important;
+}
+#viewLaudoGuindaste .laudo-controls button:nth-child(2) {
+  background: linear-gradient(135deg, rgba(16,185,129,0.9), rgba(16,185,129,0.7)) !important;
+}
+#viewLaudoGuindaste .laudo-controls button:nth-child(3) {
+  background: rgba(30,41,59,0.8) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+#viewLaudoGuindaste .laudo-controls button:nth-child(4) {
+  background: linear-gradient(135deg, rgba(239,68,68,0.9), rgba(185,28,28,0.8)) !important;
 }

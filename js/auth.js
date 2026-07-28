@@ -25,6 +25,10 @@ export function aplicarPermissoes() {
     importLabel.style.display = (currentUserRole === "admin") ? "inline-flex" : "none";
     const menuConfig = document.getElementById("menuConfiguracoes");
     if (menuConfig) menuConfig.style.display = currentUserRole === "admin" ? "" : "none";
+    const menuLaudo = document.getElementById("menuLaudoGuindaste");
+    if (menuLaudo) menuLaudo.style.display = currentUserRole === "admin" ? "" : "none";
+    const menuMateriais = document.getElementById("menuLaudoMateriais");
+    if (menuMateriais) menuMateriais.style.display = currentUserRole === "admin" ? "" : "none";
 }
 
 export function atualizarBotaoPerfil() {

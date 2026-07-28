@@ -48,7 +48,7 @@ async function getAccessToken() {
   }
 }
 
-async function getAuthHeaders(forWrite = false) {
+export async function getAuthHeaders(forWrite = false) {
   const token = await getAccessToken();
   const apikey = SUPABASE_ANON;
   const headers = {
@@ -258,6 +258,47 @@ export async function apiGetFrota() {
     console.warn("Erro ao carregar frota do Supabase:", e);
     return null;
   }
+}
+
+// --- LAUDOS GUINDASTE ---
+
+export async function apiLaudosGuindasteList() {
+  try {
+    const r = await fetchComTimeout(SUPABASE_URL + "/rest/v1/laudos_guindaste?order=updated_at.desc", {
+      headers: await getAuthHeaders()
+    });
+    if (!r.ok) return [];
+    return await r.json();
+  } catch (e) {
+    console.warn("Erro ao listar laudos guindaste:", e);
+    return [];
+  }
+}
+
+export async function apiLaudoGuindasteSalvar(data) {
+  const headers = await getAuthHeaders(true);
+  const url = SUPABASE_URL + "/rest/v1/laudos_guindaste";
+  if (data.id) {
+    const r = await fetch(url + "?id=eq." + data.id, {
+      method: "PATCH", headers, body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error("Falha ao atualizar (" + r.status + ")");
+    return data.id;
+  } else {
+    const r = await fetch(url, {
+      method: "POST", headers, body: JSON.stringify(data)
+    });
+    if (!r.ok) throw new Error("Falha ao salvar (" + r.status + ")");
+    const json = await r.json();
+    return json[0]?.id;
+  }
+}
+
+export async function apiLaudoGuindasteDeletar(id) {
+  const r = await fetch(SUPABASE_URL + "/rest/v1/laudos_guindaste?id=eq." + id, {
+    method: "DELETE", headers: await getAuthHeaders(true)
+  });
+  return r.ok;
 }
 
 // --- SUPABASE AUTH (Google OAuth) ---

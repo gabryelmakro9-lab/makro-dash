@@ -8,6 +8,8 @@ import { dadosFiltrados, atualizarDashboard, configurarOrdenacaoTabela, atualiza
 import { carregarFrotaJson, atualizarDashboardEquipamentos } from "./equipamentos.js";
 import { renderizarConfigUsuarios, renderizarMetas } from "./config.js";
 import { gerarRelatorioPDF } from "./pdf.js";
+import { initLaudoGuindaste } from "./laudo-guindaste.js";
+import { initLaudoMateriais } from "./laudo-materiais.js";
 import { setAutoRefreshTimer, setCurrentUserRole, setCurrentUserEmail, setCurrentUserProfile } from "./state.js";
 import { getSessaoGoogle } from "./supabase.js";
 
@@ -240,6 +242,12 @@ window.addEventListener("DOMContentLoaded", () => {
                 const user = await apiGetUserByEmail(savedEmail);
                 if (user) {
                     setCurrentUserProfile(user);
+                    if (user.role && user.role !== savedRole) {
+                        setCurrentUserRole(user.role);
+                        const storage = localStorage.getItem("makroUserRole") ? localStorage : sessionStorage;
+                        storage.setItem("makroUserRole", user.role);
+                        aplicarPermissoes();
+                    }
                     atualizarBotaoPerfil();
                 }
             } catch (e) {
@@ -250,6 +258,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     configurarOrdenacaoTabela();
     iniciarAutoRefresh();
+    initLaudoGuindaste();
+    initLaudoMateriais();
     iniciarRealtime(() => {
         supabaseCarregarDados().then(carregou => {
             if (carregou) {
@@ -288,13 +298,17 @@ window.addEventListener("DOMContentLoaded", () => {
     const menuDashboard = document.getElementById("menuDashboard");
     const menuEquipamentos = document.getElementById("menuEquipamentos");
     const menuConfig = document.getElementById("menuConfiguracoes");
+    const menuLaudoGuindaste = document.getElementById("menuLaudoGuindaste");
+    const menuLaudoMateriais = document.getElementById("menuLaudoMateriais");
     const viewDashboard = document.getElementById("viewDashboard");
     const viewEquipamentos = document.getElementById("viewEquipamentos");
     const viewConfig = document.getElementById("viewConfiguracoes");
+    const viewLaudoGuindaste = document.getElementById("viewLaudoGuindaste");
+    const viewLaudoMateriais = document.getElementById("viewLaudoMateriais");
 
     function esconderViews() {
-        [viewDashboard, viewEquipamentos, viewConfig].forEach(v => { if (v) v.style.display = "none"; });
-        [menuDashboard, menuEquipamentos, menuConfig].forEach(m => { if (m) m.classList.remove("active"); });
+        [viewDashboard, viewEquipamentos, viewConfig, viewLaudoGuindaste, viewLaudoMateriais].forEach(v => { if (v) v.style.display = "none"; });
+        [menuDashboard, menuEquipamentos, menuConfig, menuLaudoGuindaste, menuLaudoMateriais].forEach(m => { if (m) m.classList.remove("active"); });
     }
 
     if (menuDashboard && viewDashboard) {
@@ -326,6 +340,58 @@ window.addEventListener("DOMContentLoaded", () => {
             renderizarMetas();
         });
     }
+
+    if (menuLaudoGuindaste && viewLaudoGuindaste) {
+        menuLaudoGuindaste.addEventListener("click", (e) => {
+            e.preventDefault();
+            esconderViews();
+            menuLaudoGuindaste.classList.add("active");
+            viewLaudoGuindaste.style.display = "block";
+        });
+    }
+
+    if (menuLaudoMateriais && viewLaudoMateriais) {
+        menuLaudoMateriais.addEventListener("click", (e) => {
+            e.preventDefault();
+            esconderViews();
+            menuLaudoMateriais.classList.add("active");
+            viewLaudoMateriais.style.display = "block";
+        });
+    }
+
+    // Nav scroll arrows
+    (function initNavScroll() {
+        const wrapper = document.querySelector(".nav-links-wrapper");
+        const container = document.querySelector(".nav-links");
+        const btnLeft = document.querySelector(".nav-scroll-left");
+        const btnRight = document.querySelector(".nav-scroll-right");
+        if (!wrapper || !container || !btnLeft || !btnRight) return;
+
+        const SCROLL_AMOUNT = 200;
+
+        function updateArrows() {
+            const canScrollLeft = container.scrollLeft > 4;
+            const canScrollRight = container.scrollLeft < container.scrollWidth - container.clientWidth - 4;
+            btnLeft.classList.toggle("visible", canScrollLeft);
+            btnRight.classList.toggle("visible", canScrollRight);
+        }
+
+        btnLeft.addEventListener("click", () => {
+            container.scrollBy({ left: -SCROLL_AMOUNT, behavior: "smooth" });
+        });
+        btnRight.addEventListener("click", () => {
+            container.scrollBy({ left: SCROLL_AMOUNT, behavior: "smooth" });
+        });
+
+        container.addEventListener("scroll", updateArrows);
+        window.addEventListener("resize", updateArrows);
+        const observer = new MutationObserver(updateArrows);
+        observer.observe(container, { childList: true, subtree: true });
+
+        updateArrows();
+        setTimeout(updateArrows, 100);
+        setTimeout(updateArrows, 500);
+    })();
 
     // Equipment filters
     const buscaEquip = document.getElementById("buscaEquipamento");

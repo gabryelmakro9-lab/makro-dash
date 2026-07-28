@@ -61,6 +61,10 @@ export async function renderizarMetas() {
 export async function renderizarConfigUsuarios() {
     const container = document.getElementById("userRegistryTable");
     if (!container) return;
+    if (currentUserEmail !== DEVELOPER_EMAIL) {
+        container.innerHTML = "";
+        return;
+    }
     container.innerHTML = `<div class="registry-empty">Carregando...</div>`;
 
     const registry = await apiGetUsers();
@@ -71,7 +75,10 @@ export async function renderizarConfigUsuarios() {
         return;
     }
 
-    let html = `<table class="user-registry"><thead><tr><th>Usuário</th><th>E-mail</th><th>Papel</th><th>Último Acesso</th><th>Ação</th></tr></thead><tbody>`;
+    const isDeveloper = currentUserEmail === DEVELOPER_EMAIL;
+    let html = `<table class="user-registry"><thead><tr><th>Usuário</th><th>E-mail</th><th>Papel</th><th>Último Acesso` +
+        (isDeveloper ? `<th>Ação</th>` : ``) +
+        `</tr></thead><tbody>`;
 
     emails.forEach(email => {
         const u = registry[email];
@@ -79,7 +86,6 @@ export async function renderizarConfigUsuarios() {
         const nome = u.name || email.split("@")[0].replace(".", " ");
         const ultimo = u.last_login ? new Date(u.last_login).toLocaleString("pt-BR") : "-";
         const roleLabel = isDev ? "admin" : u.role;
-        const disabled = isDev || currentUserRole !== "admin" ? "disabled" : "";
         const devBadge = isDev ? ' <span class="dev-badge">Desenvolvedor</span>' : "";
         const adminActive = u.role === "admin" ? "active" : "";
         const viewerActive = u.role === "viewer" ? "active" : "";
@@ -87,14 +93,14 @@ export async function renderizarConfigUsuarios() {
             <td><strong>${nome}${devBadge}</strong></td>
             <td style="color:#5a6b89;">${email}</td>
             <td><span style="text-transform:capitalize;font-weight:600;">${roleLabel}</span></td>
-            <td style="color:#5a6b89;font-size:13px;">${ultimo}</td>
-            <td>
+            <td style="color:#5a6b89;font-size:13px;">${ultimo}</td>` +
+            (isDeveloper ? `<td>
                 <div class="role-selector">
-                    <button class="role-sel-btn ${adminActive}" data-email="${email}" data-role="admin" ${disabled}>Admin</button>
-                    <button class="role-sel-btn ${viewerActive}" data-email="${email}" data-role="viewer" ${disabled}>Visualizador</button>
+                    <button class="role-sel-btn ${adminActive}" data-email="${email}" data-role="admin">Admin</button>
+                    <button class="role-sel-btn ${viewerActive}" data-email="${email}" data-role="viewer">Visualizador</button>
                 </div>
-            </td>
-        </tr>`;
+            </td>` : ``) +
+        `</tr>`;
     });
 
     html += `</tbody></table>`;
