@@ -50,7 +50,26 @@ function gerarNumeroLaudo() {
   return `${tipo}-${a.getFullYear()}${String(a.getMonth()+1).padStart(2,"0")}${String(a.getDate()).padStart(2,"0")}-${String(a.getHours()).padStart(2,"0")}${String(a.getMinutes()).padStart(2,"0")}`;
 }
 function hojeISO() { return new Date().toISOString().split("T")[0]; }
-function compressImage(file) {
+async function compressImage(file) {
+  const isHeic = /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name) || file.type === "image/heic" || file.type === "image/heif";
+  if (isHeic) {
+    let bitmap;
+    try { bitmap = await createImageBitmap(file); } catch {}
+    if (!bitmap && typeof window.heic2any === "function") {
+      const converted = await window.heic2any({ blob: file, toType: "image/jpeg", quality: 0.6 });
+      const blob = Array.isArray(converted) ? converted[0] : converted;
+      if (blob) bitmap = await createImageBitmap(blob);
+    }
+    if (!bitmap) throw new Error("HEIC não suportado neste navegador. Instale a extensão 'HEIF Image Extensions' da Microsoft Store ou use fotos JPEG/PNG.");
+    const c = document.createElement("canvas");
+    let w = bitmap.width, h = bitmap.height;
+    if (w > h) { if (w > 800) { h *= 800/w; w = 800; } }
+    else { if (h > 800) { w *= 800/h; h = 800; } }
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    return c.toDataURL("image/jpeg", 0.6);
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -148,7 +167,7 @@ function renderSubitens(itemId, subitens) {
         <label style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;border:1px dashed rgba(255,255,255,0.08);cursor:pointer;font-size:10px;color:rgba(136,153,180,0.6);background:rgba(0,0,0,0.15);transition:all 0.2s;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Fotos
-          <input type="file" accept="image/*" multiple hidden class="sif" data-item="${itemId}" data-idx="${idx}">
+          <input type="file" accept="image/*,.heic,.heif" multiple hidden class="sif" data-item="${itemId}" data-idx="${idx}">
         </label>
         <div class="si-fotos-preview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px;">
           ${fotos.map((f, fi) => `<div style="position:relative;border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);">
@@ -189,7 +208,7 @@ function renderSubitens(itemId, subitens) {
       const fotosEl = si.querySelector(".si-fotos");
       const arr = JSON.parse(fotosEl.dataset.fotos || "[]");
       for (const f of Array.from(e.target.files)) {
-        try { arr.push(await compressImage(f)); } catch (err) { console.error(err); }
+        try { arr.push(await compressImage(f)); } catch (err) { console.error(err); alert("Erro ao processar foto: " + (err.message || err)); }
       }
       fotosEl.dataset.fotos = JSON.stringify(arr);
       const pv = si.querySelector(".si-fotos-preview");
@@ -280,7 +299,7 @@ function renderChecklist() {
         <label style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;border:1px dashed rgba(255,255,255,0.08);cursor:pointer;font-size:10px;color:rgba(136,153,180,0.6);background:rgba(0,0,0,0.15);transition:all 0.2s;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Fotos
-          <input type="file" accept="image/*" multiple hidden class="sif" data-item="${itemId}">
+          <input type="file" accept="image/*,.heic,.heif" multiple hidden class="sif" data-item="${itemId}">
         </label>
         <div class="si-fotos-preview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px;"></div>
       </div>`;
@@ -304,7 +323,7 @@ function renderChecklist() {
         const fotosEl = e.target.closest(".sub-item").querySelector(".si-fotos");
         const arr = JSON.parse(fotosEl.dataset.fotos || "[]");
         for (const f of Array.from(e.target.files)) {
-          try { arr.push(await compressImage(f)); } catch (err) { console.error(err); }
+          try { arr.push(await compressImage(f)); } catch (err) { console.error(err); alert("Erro ao processar foto: " + (err.message || err)); }
         }
         fotosEl.dataset.fotos = JSON.stringify(arr);
         const pv = e.target.closest(".sub-item").querySelector(".si-fotos-preview");

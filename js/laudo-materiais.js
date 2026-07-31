@@ -85,7 +85,26 @@ function hojeBR() {
   return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
 }
 
-function compressImage(file) {
+async function compressImage(file) {
+  const isHeic = /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name) || file.type === "image/heic" || file.type === "image/heif";
+  if (isHeic) {
+    let bitmap;
+    try { bitmap = await createImageBitmap(file); } catch {}
+    if (!bitmap && typeof window.heic2any === "function") {
+      const converted = await window.heic2any({ blob: file, toType: "image/jpeg", quality: 0.6 });
+      const blob = Array.isArray(converted) ? converted[0] : converted;
+      if (blob) bitmap = await createImageBitmap(blob);
+    }
+    if (!bitmap) throw new Error("HEIC não suportado neste navegador. Instale a extensão 'HEIF Image Extensions' da Microsoft Store ou use fotos JPEG/PNG.");
+    const c = document.createElement("canvas");
+    let w = bitmap.width, h = bitmap.height;
+    if (w > h) { if (w > 640) { h *= 640/w; w = 640; } }
+    else { if (h > 640) { w *= 640/h; h = 640; } }
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    return c.toDataURL("image/jpeg", 0.5);
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -93,13 +112,13 @@ function compressImage(file) {
       const img = new Image();
       img.src = e.target.result;
       img.onload = () => {
-        const c = document.createElement("canvas");
-        let w = img.width, h = img.height;
-        if (w > h) { if (w > 800) { h *= 800/w; w = 800; } }
-        else { if (h > 800) { w *= 800/h; h = 800; } }
-        c.width = w; c.height = h;
-        c.getContext("2d").drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL("image/jpeg", 0.6));
+      const c = document.createElement("canvas");
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > 640) { h *= 640/w; w = 640; } }
+      else { if (h > 640) { w *= 640/h; h = 640; } }
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL("image/jpeg", 0.5));
       };
       img.onerror = reject;
     };
@@ -219,7 +238,7 @@ function renderAcessorioModalBody(a) {
         <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;border:1px dashed rgba(255,255,255,0.1);cursor:pointer;font-size:11px;color:rgba(136,153,180,0.7);background:rgba(0,0,0,0.2);width:100%;justify-content:center;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
           Fotos (${(a.fotos||[]).length})
-          <input type="file" accept="image/*" multiple hidden id="lmAcFotosInput">
+          <input type="file" accept="image/*,.heic,.heif" multiple hidden id="lmAcFotosInput">
         </label>
       </div>
     </div>
@@ -288,7 +307,7 @@ function bindAcessorioModalEvents(a) {
   if (fotoInput) {
     fotoInput.addEventListener("change", async e => {
       for (const f of Array.from(e.target.files)) {
-        try { aState.fotos.push(await compressImage(f)); } catch(err) { console.error(err); }
+        try { aState.fotos.push(await compressImage(f)); } catch(err) { console.error(err); alert("Erro ao processar foto: " + (err.message || err)); }
       }
       e.target.value = "";
       renderAcessorioModalBody(aState);
@@ -452,10 +471,64 @@ function renderAcessoriosTable() {
 
 /* ───── Supabase ───── */
 
+const BUCKET_LAUDOS = "laudos-materiais";
+
+function dataURLToBlob(dataURL) {
+  const [meta, b64] = dataURL.split(",");
+  const mime = (meta.match(/^data:(.*?);/) || [])[1] || "image/jpeg";
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+async function subirFotoStorage(foto, indice) {
+  if (!foto || typeof foto !== "string") return foto;
+  if (!/^data:image/i.test(foto)) return foto;
+  const blob = dataURLToBlob(foto);
+  const ext = blob.type === "image/png" ? "png" : "jpg";
+  const nome = `laudos/${Date.now()}_${indice}.${ext}`;
+  const headers = await supabaseAuthHeaders(true);
+  headers["Content-Type"] = blob.type;
+  headers["x-upsert"] = "true";
+  const r = await fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET_LAUDOS + "/" + nome, {
+    method: "POST", headers, body: blob
+  });
+  if (!r.ok) {
+    throw new Error("Falha ao enviar foto para o Storage (" + r.status + "). Crie o bucket 'laudos-materiais' no Supabase (público).");
+  }
+  return SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_LAUDOS + "/" + nome;
+}
+
+async function enviarFotosParaStorage(acessorios) {
+  const tarefas = [];
+  (acessorios || []).forEach(ac => {
+    (ac.fotos || []).forEach((foto, i) => {
+      if (/^data:image/i.test(foto)) tarefas.push({ ac, i, foto });
+    });
+  });
+  let idx = 0;
+  const worker = async () => {
+    while (idx < tarefas.length) {
+      const t = tarefas[idx++];
+      t.ac.fotos[t.i] = await subirFotoStorage(t.foto, t.i);
+    }
+  };
+  const CONC = 6;
+  await Promise.all(Array.from({ length: Math.min(CONC, tarefas.length) }, worker));
+  (acessorios || []).forEach(ac => {
+    if (ac.id && window.__lmAcessoriosData?.[ac.id]) {
+      window.__lmAcessoriosData[ac.id].fotos = ac.fotos;
+    }
+  });
+  return acessorios;
+}
+
 async function supabaseSalvarLaudoMateriais(data) {
   const url = SUPABASE_URL + "/rest/v1/laudos_materiais";
   const h = await supabaseAuthHeaders(true);
   h["Prefer"] = "return=representation";
+  await enviarFotosParaStorage(data.acessorios);
   const p = {
     numero_laudo: data.numeroLaudo, data_inspecao: data.dataInspecao, local: data.local,
     inspetor: data.inspetor, crea: data.crea, art: data.art,
@@ -465,10 +538,10 @@ async function supabaseSalvarLaudoMateriais(data) {
   };
   if (currentLaudoId) {
     const r = await fetch(url + "?id=eq." + currentLaudoId, { method: "PATCH", headers: h, body: JSON.stringify(p) });
-    if (!r.ok) throw new Error("Falha ao atualizar (" + r.status + ")");
+    if (!r.ok) throw new Error("Falha ao atualizar (" + r.status + "): " + await r.text());
   } else {
     const r = await fetch(url, { method: "POST", headers: h, body: JSON.stringify(p) });
-    if (!r.ok) throw new Error("Falha ao salvar (" + r.status + ")");
+    if (!r.ok) throw new Error("Falha ao salvar (" + r.status + "): " + await r.text());
     try { const j = await r.json(); if (j && j.length > 0) currentLaudoId = j[0].id; } catch(e) {
       try { const r2 = await fetch(url + "?numero_laudo=eq." + encodeURIComponent(data.numeroLaudo) + "&select=id&order=created_at.desc&limit=1", { headers: h }); if (r2.ok) { const j2 = await r2.json(); if (j2 && j2.length > 0) currentLaudoId = j2[0].id; } } catch(e2) {}
     }
