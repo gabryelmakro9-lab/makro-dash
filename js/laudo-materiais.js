@@ -183,7 +183,7 @@ function abrirModalAcessorio(data) {
     id: acessorioModalId, tipo: 'Manilha Curva', tag: '', capacidade: '', fabricante: '',
     tamanho: '', certificado: '', parecer: 'Aprovado', recomendacao: 'Manter no padrão',
     observacao: '', checklist: getInitialChecklist('Manilha Curva'),
-    dimensoes: { w: '', l: '', b: '', p: '', dxp: '' }, fotos: [], padraoManilha: ''
+    dimensoes: { w: '', l: '', b: '', p: '', dxp: '', curva: '' }, fotos: [], padraoManilha: ''
   };
   window.__lmEditandoAcessorio = a;
 
@@ -203,7 +203,7 @@ function renderAcessorioModalBody(a) {
   const body = safeEl("lmAcessorioModalBody");
   const isManilha = ['Manilha Curva', 'Manilha Reta'].includes(a.tipo);
   const checkDef = getChecklistDef(a.tipo);
-  const dims = a.dimensoes || { w: '', l: '', b: '', p: '', dxp: '' };
+  const dims = a.dimensoes || { w: '', l: '', b: '', p: '', dxp: '', curva: '' };
 
   let dimHtml = '';
   if (isManilha) {
@@ -217,6 +217,7 @@ function renderAcessorioModalBody(a) {
         <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">W (mm) - Abertura Inferior</label><input type="text" id="lmDimW" value="${dims.w||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"><span id="lmDimWStatus" style="font-size:10px;font-weight:600;"></span></div>
         <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">P (mm) - Diâmetro Pino</label><input type="text" id="lmDimP" value="${dims.p||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"><span id="lmDimPStatus" style="font-size:10px;font-weight:600;"></span></div>
         <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">DxP (mm) - Diâm. Corpo</label><input type="text" id="lmDimDxp" value="${dims.dxp||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"><span id="lmDimDxpStatus" style="font-size:10px;font-weight:600;"></span></div>
+        ${a.tipo === 'Manilha Curva' ? `<div><label style="font-size:10px;color:rgba(136,153,180,0.6);">C (mm) - Abertura Interna da Curva</label><input type="text" id="lmDimCurva" value="${dims.curva||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"></div>` : ''}
       </div>
     </div>`;
   }
@@ -297,8 +298,9 @@ function bindAcessorioModalEvents(a) {
       aState.checklist = getInitialChecklist(novoTipo);
       if (!['Manilha Curva', 'Manilha Reta'].includes(novoTipo)) {
         aState.padraoManilha = '';
-        aState.dimensoes = { w: '', l: '', b: '', p: '', dxp: '' };
+        aState.dimensoes = { w: '', l: '', b: '', p: '', dxp: '', curva: '' };
       }
+      if (novoTipo === 'Manilha Reta' && aState.dimensoes) delete aState.dimensoes.curva;
       renderAcessorioModalBody(aState);
     });
   });
@@ -364,7 +366,8 @@ function bindAcessorioModalEvents(a) {
         aState.dimensoes = {
           w: safeEl("lmDimW")?.value || "",
           p: safeEl("lmDimP")?.value || "",
-          dxp: safeEl("lmDimDxp")?.value || ""
+          dxp: safeEl("lmDimDxp")?.value || "",
+          curva: safeEl("lmDimCurva")?.value || ""
         };
       }
       if (!window.__lmAcessoriosData) window.__lmAcessoriosData = {};
@@ -887,7 +890,12 @@ function gerarPDFLaudoMateriais() {
        let pVal = parseFloat(String(ac.dimensoes?.p || "").replace(',','.'));
        let dxpVal = parseFloat(String(ac.dimensoes?.dxp || "").replace(',','.'));
        let nom = ac.padraoManilha && DIMENSOES_MANILHAS ? DIMENSOES_MANILHAS[ac.padraoManilha] : null;
-       
+       const isCurva = ac.tipo === 'Manilha Curva';
+       const colParam = isCurva ? 'w-1/5 p-1 border-r border-black' : 'w-2/5 p-1 border-r border-black';
+       const colMid = 'w-1/5 p-1 border-r border-black';
+       const colLast = isCurva ? 'w-1/5 p-1 border-r border-black' : 'w-1/5 p-1';
+       const colCurva = 'w-1/5 p-1';
+
        dimensoesHtml = `
          <div class="border-2 border-black mb-2 shrink-0">
            <div class="bg-slate-200 border-b-2 border-black p-0.5 font-bold text-[9px] text-center uppercase text-black">
@@ -896,38 +904,42 @@ function gerarPDFLaudoMateriais() {
            <table class="w-full text-[9px] text-left border-collapse">
              <thead class="bg-gray-100 border-b border-black font-bold">
                <tr>
-                 <th class="w-2/5 p-1 border-r border-black">Parâmetro de Medição</th>
-                 <th class="w-1/5 p-1 border-r border-black">Abertura Inferior (W)</th>
-                 <th class="w-1/5 p-1 border-r border-black">Diâmetro Pino (P)</th>
-                 <th class="w-1/5 p-1">Diâm. Corpo (DxP)</th>
+                 <th class="${colParam}">Parâmetro de Medição</th>
+                 <th class="${colMid}">Abertura Inferior (W)</th>
+                 <th class="${colMid}">Diâmetro Pino (P)</th>
+                 <th class="${colLast}">Diâm. Corpo (DxP)</th>
+                 ${isCurva ? `<th class="${colCurva}">Abert. Interna da Curva</th>` : ''}
                </tr>
              </thead>
              <tbody>
                ${nom ? `
                <tr class="border-b border-gray-300 text-gray-600">
-                 <td class="p-1 border-r border-black font-semibold">Valores Nominais (Padrão):</td>
-                 <td class="p-1 border-r border-black">${nom.w} mm</td>
-                 <td class="p-1 border-r border-black">${nom.p} mm</td>
-                 <td class="p-1">${nom.dxp} mm</td>
+                 <td class="${colParam} font-semibold">Valores Nominais (Padrão):</td>
+                 <td class="${colMid}">${nom.w} mm</td>
+                 <td class="${colMid}">${nom.p} mm</td>
+                 <td class="${colLast}">${nom.dxp} mm</td>
+                 ${isCurva ? `<td class="${colCurva}">-</td>` : ''}
                </tr>` : ''}
                <tr class="border-b border-gray-300 bg-white">
-                 <td class="p-1 border-r border-black font-bold text-black">Valor Encontrado na Inspeção:</td>
-                 <td class="p-1 border-r border-black font-bold text-black">${ac.dimensoes?.w ? `${ac.dimensoes.w} mm` : '-'}</td>
-                 <td class="p-1 border-r border-black font-bold text-black">${ac.dimensoes?.p ? `${ac.dimensoes.p} mm` : '-'}</td>
-                 <td class="p-1 font-bold text-black">${ac.dimensoes?.dxp ? `${ac.dimensoes.dxp} mm` : '-'}</td>
+                 <td class="${colParam} font-bold text-black">Valor Encontrado na Inspeção:</td>
+                 <td class="${colMid} font-bold text-black">${ac.dimensoes?.w ? `${ac.dimensoes.w} mm` : '-'}</td>
+                 <td class="${colMid} font-bold text-black">${ac.dimensoes?.p ? `${ac.dimensoes.p} mm` : '-'}</td>
+                 <td class="${colLast} font-bold text-black">${ac.dimensoes?.dxp ? `${ac.dimensoes.dxp} mm` : '-'}</td>
+                 ${isCurva ? `<td class="${colCurva} font-bold text-black">${ac.dimensoes?.curva ? `${ac.dimensoes.curva} mm` : '-'}</td>` : ''}
                </tr>
                ${nom ? `
                <tr class="border-b border-gray-300 font-bold uppercase bg-gray-50 text-[8px]">
-                 <td class="p-1 border-r border-black text-gray-600 text-right pr-2">Status por Medida:</td>
-                 <td class="p-1 border-r border-black ${ac.dimensoes?.w ? (!(wVal <= nom.w * 1.1 && wVal >= nom.w * 0.9) ? 'text-red-600' : 'text-green-600') : ''}">
+                 <td class="${colParam} text-gray-600 text-right pr-2">Status por Medida:</td>
+                 <td class="${colMid} ${ac.dimensoes?.w ? (!(wVal <= nom.w * 1.1 && wVal >= nom.w * 0.9) ? 'text-red-600' : 'text-green-600') : ''}">
                      ${ac.dimensoes?.w ? (!(wVal <= nom.w * 1.1 && wVal >= nom.w * 0.9) ? 'REPROVADO' : 'APROVADO') : '-'}
                  </td>
-                 <td class="p-1 border-r border-black ${ac.dimensoes?.p ? (!(pVal >= nom.p * 0.9) ? 'text-red-600' : 'text-green-600') : ''}">
+                 <td class="${colMid} ${ac.dimensoes?.p ? (!(pVal >= nom.p * 0.9) ? 'text-red-600' : 'text-green-600') : ''}">
                      ${ac.dimensoes?.p ? (!(pVal >= nom.p * 0.9) ? 'REPROVADO' : 'APROVADO') : '-'}
                  </td>
-                 <td class="p-1 ${ac.dimensoes?.dxp ? (!(dxpVal >= nom.dxp * 0.9) ? 'text-red-600' : 'text-green-600') : ''}">
+                 <td class="${colLast} ${ac.dimensoes?.dxp ? (!(dxpVal >= nom.dxp * 0.9) ? 'text-red-600' : 'text-green-600') : ''}">
                      ${ac.dimensoes?.dxp ? (!(dxpVal >= nom.dxp * 0.9) ? 'REPROVADO' : 'APROVADO') : '-'}
                  </td>
+                 ${isCurva ? `<td class="${colCurva}">-</td>` : ''}
                </tr>` : ''}
              </tbody>
            </table>
