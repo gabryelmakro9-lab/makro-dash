@@ -2103,6 +2103,10 @@ canvas {
     display: inline-flex;
   }
 
+  .nav-actions #perfilBtnNome {
+    display: none !important;
+  }
+
   .top-nav.nav-open .nav-links-wrapper {
     display: block;
     position: absolute;
@@ -2414,12 +2418,14 @@ textarea {
     padding: 0;
     justify-content: center;
     font-size: 12px;
+    flex-shrink: 0;
   }
 
   .nav-actions .btn-success {
     width: 30px;
     padding: 0;
     font-size: 0;
+    flex-shrink: 0;
   }
 
   .nav-actions .btn-success i {
