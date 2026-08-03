@@ -393,6 +393,26 @@ window.addEventListener("DOMContentLoaded", () => {
         setTimeout(updateArrows, 500);
     })();
 
+    // Mobile menu (hamburger)
+    const btnMobileMenu = document.getElementById("btnMobileMenu");
+    const topNav = document.getElementById("topNav");
+    if (btnMobileMenu && topNav) {
+        const fecharMenu = () => {
+            topNav.classList.remove("nav-open");
+            btnMobileMenu.setAttribute("aria-expanded", "false");
+        };
+        btnMobileMenu.addEventListener("click", () => {
+            const open = topNav.classList.toggle("nav-open");
+            btnMobileMenu.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+        topNav.querySelectorAll(".nav-links a").forEach(a => {
+            a.addEventListener("click", fecharMenu);
+        });
+        window.addEventListener("click", e => {
+            if (topNav.classList.contains("nav-open") && !topNav.contains(e.target)) fecharMenu();
+        });
+    }
+
     // Equipment filters
     const buscaEquip = document.getElementById("buscaEquipamento");
     const statusEquip = document.getElementById("filtroStatusEquipamento");
