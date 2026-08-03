@@ -5,7 +5,7 @@ import { carregarFrota, criarAutocomplete, getFrotaItem } from "./frota-autocomp
 const SUPABASE_URL = typeof __SUPABASE_URL__ !== "undefined" ? __SUPABASE_URL__ : "";
 const SUPABASE_ANON = typeof __SUPABASE_ANON__ !== "undefined" ? __SUPABASE_ANON__ : "";
 
-const TIPOS_ACESSORIOS = ['Manilha Curva', 'Manilha Reta', 'Cinta Plana', 'Cinta Tubular', 'Cinta Catraca', 'Slingas de Cabo de Aço'];
+const TIPOS_ACESSORIOS = ['Manilha Curva', 'Manilha Reta', 'Cinta Plana', 'Cinta Tubular', 'Cinta Catraca', 'Slingas de Cabo de Aço', 'Olhal de içamento'];
 
 const CHECKLIST_MANILHA = [
   { id: 'marcacoes', label: 'Marcações no corpo/pino' },
@@ -31,6 +31,14 @@ const CHECKLIST_CABO_ACO = [
   { id: 'desgaste_abrasao', label: 'Desgaste por Abrasão' },
   { id: 'alma_exposta', label: 'Alma Exposta' },
   { id: 'terminais_prensagem', label: 'Terminais e Prensagem' }
+];
+
+const CHECKLIST_OLHAL = [
+  { id: 'soldas', label: 'Condição das Soldas' },
+  { id: 'trincas', label: 'Trincas / Faturas' },
+  { id: 'deformacoes', label: 'Deformações / Envergamento' },
+  { id: 'corrosao', label: 'Corrosão / Desgaste' },
+  { id: 'marcacoes', label: 'Marcações / Identificação' }
 ];
 
 const DIMENSOES_MANILHAS = {
@@ -65,12 +73,14 @@ function getInitialChecklist(tipo) {
   let list = CHECKLIST_CINTA;
   if (['Manilha Curva', 'Manilha Reta'].includes(tipo)) list = CHECKLIST_MANILHA;
   else if (tipo === 'Slingas de Cabo de Aço') list = CHECKLIST_CABO_ACO;
+  else if (tipo === 'Olhal de içamento') list = CHECKLIST_OLHAL;
   return list.reduce((acc, item) => { acc[item.id] = 'C'; return acc; }, {});
 }
 
 function getChecklistDef(tipo) {
   if (['Manilha Curva', 'Manilha Reta'].includes(tipo)) return CHECKLIST_MANILHA;
   if (tipo === 'Slingas de Cabo de Aço') return CHECKLIST_CABO_ACO;
+  if (tipo === 'Olhal de içamento') return CHECKLIST_OLHAL;
   return CHECKLIST_CINTA;
 }
 
@@ -168,7 +178,7 @@ function setAcessoriosState(acessorios) {
   window.__lmAcessoriosData = {};
   (acessorios || []).forEach(a => {
     const id = a.id || Date.now().toString() + Math.random().toString(36).slice(2,6);
-    window.__lmAcessoriosData[id] = { ...a, id };
+    window.__lmAcessoriosData[id] = { ...a, id, incluir: a.incluir !== false };
   });
   renderAcessoriosTable();
 }
@@ -183,7 +193,8 @@ function abrirModalAcessorio(data) {
     id: acessorioModalId, tipo: 'Manilha Curva', tag: '', capacidade: '', fabricante: '',
     tamanho: '', certificado: '', parecer: 'Aprovado', recomendacao: 'Manter no padrão',
     observacao: '', checklist: getInitialChecklist('Manilha Curva'),
-    dimensoes: { w: '', l: '', b: '', p: '', dxp: '', curva: '' }, fotos: [], padraoManilha: ''
+    dimensoes: { w: '', l: '', b: '', p: '', dxp: '', curva: '' }, fotos: [], padraoManilha: '',
+    incluir: true
   };
   window.__lmEditandoAcessorio = a;
 
@@ -218,6 +229,16 @@ function renderAcessorioModalBody(a) {
         <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">P (mm) - Diâmetro Pino</label><input type="text" id="lmDimP" value="${dims.p||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"><span id="lmDimPStatus" style="font-size:10px;font-weight:600;"></span></div>
         <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">DxP (mm) - Diâm. Corpo</label><input type="text" id="lmDimDxp" value="${dims.dxp||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"><span id="lmDimDxpStatus" style="font-size:10px;font-weight:600;"></span></div>
         ${a.tipo === 'Manilha Curva' ? `<div><label style="font-size:10px;color:rgba(136,153,180,0.6);">C (mm) - Abertura Interna da Curva</label><input type="text" id="lmDimCurva" value="${dims.curva||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"></div>` : ''}
+      </div>
+    </div>`;
+  } else if (a.tipo === 'Olhal de içamento') {
+    dimHtml = `<div style="margin:12px 0;padding:12px;background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.06);border-radius:8px;">
+      <label style="font-size:11px;font-weight:700;color:rgba(136,153,180,0.8);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:block;">Dimensões do Olhal (mm)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">Espessura do Corpo</label><input type="text" id="lmDimEspessuraCorpo" value="${dims.espessuraCorpo||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"></div>
+        <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">Diâmetro Interno do Olhal</label><input type="text" id="lmDimDiametroInterno" value="${dims.diametroInterno||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"></div>
+        <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">Espessura do Olhal</label><input type="text" id="lmDimEspessuraOlhal" value="${dims.espessuraOlhal||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"></div>
+        <div><label style="font-size:10px;color:rgba(136,153,180,0.6);">Abertura do Encaixe</label><input type="text" id="lmDimAberturaEncaixe" value="${dims.aberturaEncaixe||''}" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.3);color:#e2e8f0;font-size:12px;"></div>
       </div>
     </div>`;
   }
@@ -370,6 +391,14 @@ function bindAcessorioModalEvents(a) {
           curva: safeEl("lmDimCurva")?.value || ""
         };
       }
+      if (aState.tipo === 'Olhal de içamento') {
+        aState.dimensoes = {
+          espessuraCorpo: safeEl("lmDimEspessuraCorpo")?.value || "",
+          diametroInterno: safeEl("lmDimDiametroInterno")?.value || "",
+          espessuraOlhal: safeEl("lmDimEspessuraOlhal")?.value || "",
+          aberturaEncaixe: safeEl("lmDimAberturaEncaixe")?.value || ""
+        };
+      }
       if (!window.__lmAcessoriosData) window.__lmAcessoriosData = {};
       window.__lmAcessoriosData[aState.id] = { ...aState };
       renderAcessoriosTable();
@@ -412,22 +441,41 @@ function setDimStatus(sufixo, ok, nominal) {
 
 /* ───── Acessories table ───── */
 
+function atualizarContagemEmissao() {
+  const data = window.__lmAcessoriosData || {};
+  const ids = Object.keys(data);
+  const q = safeEl("qtdeAcessoriosMateriais");
+  if (q) q.textContent = ids.length;
+  const bar = safeEl("lmContagemEmissao");
+  const sel = ids.filter(id => data[id].incluir !== false).length;
+  if (bar) bar.textContent = `${sel} de ${ids.length} selecionado(s)`;
+}
+
 function renderAcessoriosTable() {
   const container = safeEl("lmAcessoriosBody");
   if (!container) return;
   const data = window.__lmAcessoriosData || {};
   const ids = Object.keys(data);
-  const q = safeEl("qtdeAcessoriosMateriais");
-  if (q) q.textContent = ids.length;
+  atualizarContagemEmissao();
 
   if (ids.length === 0) {
     container.innerHTML = `<div style="text-align:center;padding:32px;color:rgba(136,153,180,0.5);font-size:13px;">Nenhum acessório adicionado. Clique em "Adicionar Acessório".</div>`;
     return;
   }
 
+  const todosMarcados = ids.every(id => data[id].incluir !== false);
+
   container.innerHTML = `<div style="overflow-x:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:rgba(30,41,59,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:6px;margin-bottom:8px;flex-wrap:wrap;">
+      <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#e2e8f0;font-weight:600;">
+        <input type="checkbox" id="lmSelAllAcessorios" ${todosMarcados?'checked':''} style="width:15px;height:15px;cursor:pointer;accent-color:#D4AF37;">
+        Marcar todos para emissão no laudo
+      </label>
+      <span id="lmContagemEmissao" style="font-size:11px;color:rgba(136,153,180,0.7);"></span>
+    </div>
     <table style="width:100%;border-collapse:collapse;font-size:12px;">
       <thead><tr style="background:rgba(30,41,59,0.5);color:rgba(136,153,180,0.8);">
+        <th style="padding:8px 10px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">Emissão</th>
         <th style="padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">#</th>
         <th style="padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">Tipo</th>
         <th style="padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">TAG</th>
@@ -439,7 +487,9 @@ function renderAcessoriosTable() {
       <tbody>${ids.map((id, idx) => {
         const a = data[id];
         const cor = STATUS_CORES[a.parecer] || STATUS_CORES["Aprovado"];
-        return `<tr class="lm-ac-item" data-id="${id}" style="border-bottom:1px solid rgba(255,255,255,0.04);">
+        const checked = a.incluir !== false;
+        return `<tr class="lm-ac-item" data-id="${id}" style="border-bottom:1px solid rgba(255,255,255,0.04);${checked?'':'opacity:0.45;'}">
+          <td style="padding:8px 10px;text-align:center;"><input type="checkbox" class="lm-sel-ac" data-id="${id}" ${checked?'checked':''} style="width:15px;height:15px;cursor:pointer;accent-color:#D4AF37;" title="${checked?'Este acessório sairá no laudo':'Este acessório NÃO sairá no laudo'}"></td>
           <td style="padding:8px 10px;font-weight:600;color:#D4AF37;">${idx+1}</td>
           <td style="padding:8px 10px;color:#e2e8f0;font-weight:600;">${a.tipo}</td>
           <td style="padding:8px 10px;color:#e2e8f0;">${a.tag||"-"}</td>
@@ -454,6 +504,30 @@ function renderAcessoriosTable() {
       }).join("")}</tbody>
     </table>
   </div>`;
+
+  const selAll = safeEl("lmSelAllAcessorios");
+  if (selAll) {
+    selAll.addEventListener("change", () => {
+      ids.forEach(id => { if (window.__lmAcessoriosData?.[id]) window.__lmAcessoriosData[id].incluir = selAll.checked; });
+      renderAcessoriosTable();
+    });
+  }
+
+  container.querySelectorAll(".lm-sel-ac").forEach(cb => {
+    cb.addEventListener("change", () => {
+      const id = cb.dataset.id;
+      if (window.__lmAcessoriosData?.[id]) window.__lmAcessoriosData[id].incluir = cb.checked;
+      const row = container.querySelector(`tr.lm-ac-item[data-id="${id}"]`);
+      if (row) row.style.opacity = cb.checked ? "" : "0.45";
+      atualizarContagemEmissao();
+      const all = safeEl("lmSelAllAcessorios");
+      if (all) {
+        const d2 = window.__lmAcessoriosData || {};
+        const ids2 = Object.keys(d2);
+        all.checked = ids2.length > 0 && ids2.every(i => d2[i].incluir !== false);
+      }
+    });
+  });
 
   container.querySelectorAll(".lm-edit-ac").forEach(b => {
     b.addEventListener("click", () => {
@@ -470,6 +544,8 @@ function renderAcessoriosTable() {
       renderAcessoriosTable();
     });
   });
+
+  atualizarContagemEmissao();
 }
 
 /* ───── Supabase ───── */
@@ -706,10 +782,12 @@ export async function initLaudoMateriais() {
 function gerarPDFLaudoMateriais() {
   const data = getFormData();
   if (!data.acessorios || data.acessorios.length === 0) return alert("Adicione pelo menos um acessório.");
+  const selecionados = (data.acessorios || []).filter(a => a.incluir !== false);
+  if (selecionados.length === 0) return alert("Nenhum acessório selecionado para emissão. Marque ao menos um acessório para sair no laudo.");
   const win = window.open("", "_blank");
   if (!win) return alert("Permita pop-ups.");
 
-  const emissaoData = data;
+  const emissaoData = { ...data, acessorios: selecionados };
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -859,6 +937,7 @@ function gerarPDFLaudoMateriais() {
     let checklistList = CHECKLIST_CINTA || [];
     if (isManilha) checklistList = CHECKLIST_MANILHA || [];
     else if (ac.tipo === 'Slingas de Cabo de Aço') checklistList = CHECKLIST_CABO_ACO || [];
+    else if (ac.tipo === 'Olhal de içamento') checklistList = CHECKLIST_OLHAL || [];
     
     const renderStatus = (item) => {
         if(!item) return '';
@@ -942,9 +1021,34 @@ function gerarPDFLaudoMateriais() {
                  ${isCurva ? `<td class="${colCurva}">-</td>` : ''}
                </tr>` : ''}
              </tbody>
-           </table>
-         </div>
-       `;
+</table>
+          </div>
+        `;
+    } else if (ac.tipo === 'Olhal de içamento') {
+      const d = ac.dimensoes || {};
+      dimensoesHtml = `
+        <div class="border-2 border-black mb-2 shrink-0">
+          <div class="bg-slate-200 border-b-2 border-black p-0.5 font-bold text-[9px] text-center uppercase text-black">
+            DIMENSÕES DO OLHAL (mm)
+          </div>
+          <table class="w-full text-[9px] text-left border-collapse">
+            <tbody>
+              <tr>
+                <td class="w-1/4 p-1 border-r border-black bg-gray-100 font-bold uppercase">Espessura do Corpo</td>
+                <td class="w-1/4 p-1 border-r border-black font-bold">${d.espessuraCorpo ? `${d.espessuraCorpo} mm` : '-'}</td>
+                <td class="w-1/4 p-1 border-r border-black bg-gray-100 font-bold uppercase">Diâm. Interno do Olhal</td>
+                <td class="w-1/4 p-1 font-bold">${d.diametroInterno ? `${d.diametroInterno} mm` : '-'}</td>
+              </tr>
+              <tr>
+                <td class="w-1/4 p-1 border border-black bg-gray-100 font-bold uppercase">Espessura do Olhal</td>
+                <td class="w-1/4 p-1 border-r border-black font-bold">${d.espessuraOlhal ? `${d.espessuraOlhal} mm` : '-'}</td>
+                <td class="w-1/4 p-1 border-r border-black bg-gray-100 font-bold uppercase">Abertura do Encaixe</td>
+                <td class="w-1/4 p-1 font-bold">${d.aberturaEncaixe ? `${d.aberturaEncaixe} mm` : '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
     let fotosHtml = '';
