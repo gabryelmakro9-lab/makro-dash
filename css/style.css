@@ -2233,3 +2233,214 @@ canvas {
 #viewLaudoGuindaste .laudo-controls button:nth-child(4) {
   background: linear-gradient(135deg, rgba(239,68,68,0.9), rgba(185,28,28,0.8)) !important;
 }
+
+/* ==========================================================
+   RESPONSIVIDADE AVANÇADA — CELULARES E TABLETS
+   ========================================================== */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+img,
+canvas,
+svg,
+video,
+iframe,
+embed,
+object {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+/* ---------- TABLETS (até 1024px) ---------- */
+@media (max-width: 1024px) {
+  .content {
+    padding: 20px;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+/* ---------- CELULARES (até 768px) ---------- */
+@media (max-width: 768px) {
+  .content {
+    padding: 12px;
+  }
+
+  .kpi-grid,
+  .filters,
+  .dashboard-grid,
+  .ranking-grid,
+  .executive-grid,
+  .spec-grid,
+  .eq-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-card {
+    min-height: auto;
+    padding: 14px 16px;
+  }
+
+  .card {
+    padding: 16px;
+    min-height: auto;
+  }
+
+  .card-chart {
+    height: 200px;
+  }
+
+  .table-card-full {
+    padding: 14px;
+  }
+
+  .table-wrapper {
+    max-height: none;
+  }
+
+  .table-wrapper table {
+    min-width: 600px;
+  }
+
+  .table-wrapper th,
+  .table-wrapper td {
+    padding: 10px 10px;
+    font-size: 12px;
+  }
+
+  /* grids com colunas fixas inline (laudos/config) viram 1 coluna */
+  .form-grid,
+  #lgChecklistContainer,
+  #metasConfigContainer [style*="grid-template-columns:1fr 1fr"],
+  #viewLaudoGuindaste [style*="grid-template-columns:1fr 1fr"],
+  #viewLaudoMateriais [style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  #viewLaudoGuindaste .card,
+  #viewLaudoMateriais .card {
+    padding: 18px;
+  }
+
+  /* equipamentos */
+  .equipamentos-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .equipment-card {
+    min-height: auto;
+  }
+
+  /* botões dos laudos empilham */
+  .laudo-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .laudo-controls .btn {
+    width: 100%;
+    margin: 0;
+  }
+
+  /* tabela de usuários rola dentro do card */
+  #userRegistryTable {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .user-registry {
+    min-width: 560px;
+  }
+
+  /* modais */
+  .modal-content {
+    width: 95%;
+    padding: 16px;
+    margin: 16px auto;
+  }
+
+  .modal-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topbar h1 {
+    font-size: 18px;
+  }
+
+  .topbar p {
+    font-size: 13px;
+  }
+
+  .ranking-item,
+  .alert-item {
+    flex-wrap: wrap;
+  }
+
+  .alert-action {
+    align-self: flex-start;
+  }
+}
+
+/* ---------- CELULARES MUITO PEQUENOS (até 480px) ---------- */
+@media (max-width: 480px) {
+  .top-nav {
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .nav-actions {
+    gap: 4px;
+  }
+
+  .nav-actions .btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .nav-actions .btn-success {
+    width: 30px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .nav-actions .btn-success i {
+    font-size: 13px;
+  }
+
+  .topbar p {
+    font-size: 12px;
+  }
+
+  .table-card-full h3,
+  .card h3 {
+    font-size: 14px;
+  }
+
+  .kpi-card h2 {
+    font-size: 18px;
+  }
+
+  .filters select {
+    font-size: 13px;
+    padding: 11px 30px 11px 12px;
+  }
+}
