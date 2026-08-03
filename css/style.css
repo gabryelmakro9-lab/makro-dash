@@ -2387,34 +2387,6 @@ textarea {
     font-size: 13px;
   }
 
-  /* navbar: botões de ação compactos e sem sobreposição */
-  .nav-actions {
-    gap: 4px;
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .nav-actions::-webkit-scrollbar {
-    display: none;
-  }
-
-  .nav-actions .btn,
-  .nav-actions .btn-success {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-
-  .nav-actions #perfilBtnNome {
-    display: none !important;
-  }
-
   .ranking-item,
   .alert-item {
     flex-wrap: wrap;
@@ -2433,22 +2405,25 @@ textarea {
   }
 
   .nav-actions {
-    gap: 3px;
+    gap: 4px;
   }
 
-  .nav-actions .btn,
-  .nav-actions .btn-success {
+  .nav-actions .btn {
     width: 30px;
     height: 30px;
     padding: 0;
     justify-content: center;
     font-size: 12px;
-    flex-shrink: 0;
   }
 
-  #btnExportExcel,
-  #btnExportPDF {
-    display: none !important;
+  .nav-actions .btn-success {
+    width: 30px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .nav-actions .btn-success i {
+    font-size: 13px;
   }
 
   .topbar p {
